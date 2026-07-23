@@ -61,10 +61,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <button onclick="resetCurrentWeekTeam()" class="text-xs bg-amber-600 hover:bg-amber-700 text-white font-semibold px-2.5 py-1.5 rounded-full flex items-center gap-1 transition border border-amber-400/40 shadow-sm active:scale-95">
-                        <i class="fa-solid fa-rotate-left"></i> 주간 초기화
-                    </button>
-                    <button onclick="exportData()" class="text-xs bg-amber-700 hover:bg-amber-800 text-white font-semibold px-2.5 py-1.5 rounded-full flex items-center gap-1 transition border border-amber-500/40 shadow-sm active:scale-95">
+                    <button onclick="exportData()" class="text-xs bg-amber-700 hover:bg-amber-800 text-white font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition border border-amber-500/40 shadow-sm active:scale-95">
                         <i class="fa-solid fa-download"></i> 백업
                     </button>
                 </div>
@@ -135,7 +132,7 @@
                         <i class="fa-solid fa-circle-info text-amber-600"></i> 민들레런 점수 산정 규칙
                     </p>
                     <ul class="list-disc list-inside text-amber-900/90 space-y-1 pl-1 text-[11px]">
-                        <li><strong>실시간 클라우드 자동 저장:</strong> O/X를 누르면 접속 중인 모든 인원의 화면에 즉시 반영됩니다.</li>
+                        <li><strong>실시간 클라우드 자동 저장:</strong> O를 누르면 접속 중인 모든 인원의 화면에 즉시 반영됩니다.</li>
                         <li><strong>주간 점수 제한:</strong> 각 팀원들의 O 개수를 합산하되 주당 <strong>최대 5점</strong>까지 반영됩니다.</li>
                         <li><strong>독립형 앱 지원:</strong> 구글 시트 연동 설정 없이 완벽한 독립 웹 앱으로 동작합니다.</li>
                     </ul>
@@ -190,7 +187,7 @@
                     <span id="syncTimeDisplay" class="text-slate-400 text-[10px]">최근 업데이트 방금 전</span>
                 </div>
 
-                <!-- 선택된 팀의 팀원 목록 & O/X 체크 리스트 -->
+                <!-- 선택된 팀의 팀원 목록 & O 체크 리스트 -->
                 <div id="memberList" class="space-y-3">
                     <!-- JS로 동적 생성 -->
                 </div>
@@ -198,17 +195,13 @@
         </main>
 
         <!-- 하단 바 & 안내 정보 -->
-        <footer class="bg-slate-50 border-t border-slate-200/80 p-3.5 text-center shrink-0">
-            <div class="flex justify-around text-xs text-slate-500">
-                <button onclick="resetCurrentWeekTeam()" class="flex items-center gap-1.5 hover:text-rose-600 transition">
-                    <i class="fa-solid fa-rotate-left"></i> 선택팀 이번주 초기화
-                </button>
-                <span class="text-slate-300">|</span>
-                <span class="text-emerald-700 font-bold flex items-center gap-1">
+        <footer class="bg-slate-50 border-t border-slate-200/80 p-4 text-center shrink-0">
+            <div class="flex justify-center items-center gap-3 text-xs text-slate-500">
+                <span class="text-emerald-700 font-bold flex items-center gap-1.5">
                     <i class="fa-solid fa-shield-halved text-emerald-500"></i> 서버리스 클라우드 DB
                 </span>
                 <span class="text-slate-300">|</span>
-                <button onclick="exportData()" class="flex items-center gap-1.5 hover:text-amber-600 transition">
+                <button onclick="exportData()" class="flex items-center gap-1.5 hover:text-amber-600 transition font-medium">
                     <i class="fa-solid fa-download"></i> 데이터 백업
                 </button>
             </div>
@@ -250,14 +243,13 @@
         <i class="fa-solid fa-circle-check text-emerald-400"></i> <span id="toastText">저장 완료</span>
     </div>
 
-<!-- Firebase Module JS -->
+    <!-- Firebase Module JS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase 설정 및 초기화 (직접 설정값 삽입)
-const appId = 'mindle-run-shared-db-v1';
+        const appId = 'mindle-run-shared-db-v1';
         let firebaseConfig = {
             apiKey: "AIzaSyBFTpzML6JYHQ0h-MPIBugMQ_0ZIlYWgrg",
             authDomain: "mdrrun-1658a.firebaseapp.com",
@@ -271,15 +263,12 @@ const appId = 'mindle-run-shared-db-v1';
         let app, auth, db;
         let isCloudAvailable = false;
 
-        // 전역 앱 상태 관리
         window.currentWeekOffset = 0;
         window.activeTab = 'leaderboard'; 
         window.currentTeamId = 1; 
 
-        // 1팀 ~ 6팀 데이터 초기화
         window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
-        // 기본 샘플 데이터 구성 (최초 접속 시 사용)
         function initDefaultTeamData() {
             return {
                 1: [
@@ -314,7 +303,6 @@ const appId = 'mindle-run-shared-db-v1';
                 isCloudAvailable = true;
                 updateDbBadge(true);
 
-                // Firestore 실시간 리스너 구독 (Strict Path 규격 준수: /artifacts/{appId}/public/data/ox_state/main)
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
                 
                 onSnapshot(docRef, (docSnap) => {
@@ -322,7 +310,6 @@ const appId = 'mindle-run-shared-db-v1';
                         const data = docSnap.data();
                         if (data && data.teamData) {
                             window.teamData = data.teamData;
-                            // Ensure 1..6 exist
                             for (let i = 1; i <= 6; i++) {
                                 if (!window.teamData[i]) window.teamData[i] = [];
                             }
@@ -330,7 +317,6 @@ const appId = 'mindle-run-shared-db-v1';
                             updateSyncTime();
                         }
                     } else {
-                        // DB 문서가 없으면 초기값 생성 후 저장
                         window.teamData = initDefaultTeamData();
                         window.saveCloudData();
                     }
@@ -345,7 +331,6 @@ const appId = 'mindle-run-shared-db-v1';
             }
         }
 
-        // 로컬 스토리지 백업 불러오기 (네트워크 미연결 시 보조용)
         function loadLocalFallback() {
             updateDbBadge(false);
             try {
@@ -364,14 +349,11 @@ const appId = 'mindle-run-shared-db-v1';
             window.render();
         }
 
-        // 데이터 클라우드 & 로컬 동시 저장
         window.saveCloudData = async function() {
-            // 로컬 스토리지 상시 저장
             try {
                 localStorage.setItem('dandelion_ox_standalone_v1', JSON.stringify(window.teamData));
             } catch (e) {}
 
-            // Firestore 저장
             if (isCloudAvailable && db && auth.currentUser) {
                 try {
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
@@ -435,14 +417,12 @@ const appId = 'mindle-run-shared-db-v1';
             el.innerText = `최근 업데이트 ${timeStr}`;
         }
 
-        // 초기화 실행
         document.addEventListener('DOMContentLoaded', () => {
             initCloudDatabase();
         });
     </script>
 
     <script>
-        // 날짜 및 주차 계산 비즈니스 로직
         function getWeekDates(weekOffset = 0) {
             const now = new Date();
             const currentDay = now.getDay(); 
@@ -556,7 +536,7 @@ const appId = 'mindle-run-shared-db-v1';
 
         function setMemberRecordForDate(member, dateObj, val) {
             if (!member.records) member.records = {};
-            const key = dateObj.fullDateStr; // 표준 ISO 형태 Key 사용
+            const key = dateObj.fullDateStr; 
             member.records[key] = val;
         }
 
@@ -762,8 +742,6 @@ const appId = 'mindle-run-shared-db-v1';
             if (!member) return;
 
             const currentVal = getMemberRecordForDate(member, dateObj);
-            
-            // X 제거: O와 빈값(-) 간에만 토글
             let newVal = (currentVal === 'O') ? '' : 'O';
 
             setMemberRecordForDate(member, dateObj, newVal);
@@ -772,9 +750,8 @@ const appId = 'mindle-run-shared-db-v1';
             if (typeof window.saveCloudData === 'function') {
                 window.saveCloudData();
             }
-            showToast(`${member.name} - ${dateObj.month}/${dateObj.date} ${newVal ? "'O' 입력" : "초기화"}`);
+            showToast(`${member.name} - ${dateObj.month}/${dateObj.date} ${newVal ? "'O' 입력" : "해제됨"}`);
 
-            // Confetti effect on O mark
             if (newVal === 'O' && typeof confetti === 'function') {
                 confetti({
                     particleCount: 20,
@@ -812,19 +789,6 @@ const appId = 'mindle-run-shared-db-v1';
             showToast('팀원이 삭제되었습니다.');
         }
 
-        function resetCurrentWeekTeam() {
-            const dates = getWeekDates(window.currentWeekOffset);
-            const members = window.teamData[window.currentTeamId] || [];
-            members.forEach(m => {
-                dates.forEach(dObj => {
-                    setMemberRecordForDate(m, dObj, '');
-                });
-            });
-            render();
-            if (typeof window.saveCloudData === 'function') window.saveCloudData();
-            showToast(`${window.currentTeamId}팀 이번 주 기록이 초기화되었습니다.`);
-        }
-
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.teamData, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -858,7 +822,6 @@ const appId = 'mindle-run-shared-db-v1';
             return text.replace(/[&<>"']/g, m => map[m]);
         }
 
-        // 키보드 엔터 키 지원
         document.addEventListener('DOMContentLoaded', () => {
             const input = document.getElementById('newMemberInput');
             if (input) {
