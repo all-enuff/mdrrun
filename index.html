@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>민들레런 - 실시간 트래커</title>
+    <title>민들레런 팀 트래커</title>
     <!-- 모바일 PWA 및 웹앱 홈화면 설정 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -250,56 +250,23 @@
         <i class="fa-solid fa-circle-check text-emerald-400"></i> <span id="toastText">저장 완료</span>
     </div>
 
-    <!-- Firebase Module JS -->
+<!-- Firebase Module JS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 💡 깃허브 배포 전: 아래 HARDCODED_FIREBASE_CONFIG에 Firebase 콘솔 웹앱 설정(JSON 객체)을 직접 넣어서 저장 후 푸시하시면, 
-        // 접속하는 모든 팀원이 별도 설정 없이 바로 클라우드 DB에 동기화됩니다!
-        const firebaseConfig = {
-  apiKey: "AIzaSyBFTpzML6JYHQ0h-MPIBugMQ_0ZIlYWgrg",
-  authDomain: "mdrrun-1658a.firebaseapp.com",
-  projectId: "mdrrun-1658a",
-  storageBucket: "mdrrun-1658a.firebasestorage.app",
-  messagingSenderId: "125950603470",
-  appId: "1:125950603470:web:e11c876b5f83fdd983609f",
-  measurementId: "G-QR1HLKN3N2"
-};
-        /* 예시:
-        const HARDCODED_FIREBASE_CONFIG = {
-            apiKey: "AIzaSy...",
-            authDomain: "your-app.firebaseapp.com",
-            projectId: "your-app",
-            storageBucket: "your-app.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef"
-        };
-        */
-
-        // Firebase 설정 및 초기화
+        // Firebase 설정 및 초기화 (직접 설정값 삽입)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'dandelion-ox-tracker-app';
-        let firebaseConfig = HARDCODED_FIREBASE_CONFIG;
-
-        // 1. 하드코딩 설정이 없을 경우 localstorage 사용자 config 확인
-        if (!firebaseConfig) {
-            const savedCustomConfig = localStorage.getItem('dandelion_firebase_config_v1');
-            if (savedCustomConfig) {
-                try {
-                    firebaseConfig = JSON.parse(savedCustomConfig);
-                } catch(e){}
-            }
-        }
-
-        // 2. 환경 변수 config 확인
-        if (!firebaseConfig) {
-            try {
-                if (typeof __firebase_config !== 'undefined') {
-                    firebaseConfig = JSON.parse(__firebase_config);
-                }
-            } catch (e) {}
-        }
+        let firebaseConfig = {
+            apiKey: "AIzaSyBFTpzML6JYHQ0h-MPIBugMQ_0ZIlYWgrg",
+            authDomain: "mdrrun-1658a.firebaseapp.com",
+            projectId: "mdrrun-1658a",
+            storageBucket: "mdrrun-1658a.firebasestorage.app",
+            messagingSenderId: "125950603470",
+            appId: "1:125950603470:web:e11c876b5f83fdd983609f",
+            measurementId: "G-QR1HLKN3N2"
+        };
 
         let app, auth, db;
         let isCloudAvailable = false;
@@ -310,7 +277,7 @@
         window.currentTeamId = 1; 
 
         // 1팀 ~ 6팀 데이터 초기화
-        window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [];
+        window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
         // 기본 샘플 데이터 구성 (최초 접속 시 사용)
         function initDefaultTeamData() {
@@ -369,7 +336,6 @@
                     }
                 }, (error) => {
                     console.error("Firestore 구독 에러:", error);
-                    showToast("클라우드 DB 동기화 실패 (오프라인 모드로 전환)", true);
                     loadLocalFallback();
                 });
 
@@ -477,7 +443,24 @@
 
     <script>
         // 날짜 및 주차 계산 비즈니스 로직
-        function getWeekDates(weekOffset = window.currentWeekOffset) {
+        function getWeekDates(weekOffset = 0) {
+            const now = new Date();
+            const currentDay = now.getDay(); 
+            const distanceToMon = currentDay === 0 ? -6 : 1 - currentDay;
+            
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + distanceToMon + (weekOffset * 7));
+
+            const days = [];
+            const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                
+                const month = d.getMonth() + 1;
+                const date = d.getDate();
+                
                 const shortDateStr = `${month}/${date}`;
                 const paddedDateStr = `${String(month).padStart(2, '0')}/${String(date).padStart(2, '0')}`;
                 const fullDateStr = `${d.getFullYear()}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
@@ -848,20 +831,20 @@
             downloadAnchor.setAttribute("href", dataStr);
             downloadAnchor.setAttribute("download", `민들레런_클라우드_백업_${new Date().toISOString().slice(0,10)}.json`);
             document.body.appendChild(downloadAnchor);
-        function showToast(msg, isError = false) {
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("백업 데이터 다운로드 완료!");
+        }
+
+        function showToast(msg) {
             const toast = document.getElementById('toastMessage');
-            const textEl = document.getElementById('toastText');
-            if (!toast || !textEl) return;
-            textEl.innerText = msg;
-            if (isError) {
-                toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-rose-800/95 text-white text-xs px-4 py-2.5 rounded-full shadow-lg transition-opacity duration-300 opacity-100 pointer-events-none z-50 flex items-center gap-2";
-            } else {
-                toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white text-xs px-4 py-2.5 rounded-full shadow-lg transition-opacity duration-300 opacity-100 pointer-events-none z-50 flex items-center gap-2";
-            }
+            document.getElementById('toastText').innerText = msg;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
             setTimeout(() => {
                 toast.classList.remove('opacity-100');
                 toast.classList.add('opacity-0');
-            }, 2500);
+            }, 2000);
         }
 
         function escapeHtml(text) {
