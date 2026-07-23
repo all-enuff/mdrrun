@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>민들레런 - 실시간 클라우드 O/X 팀 트래커</title>
+    <!-- 모바일 PWA 및 웹앱 홈화면 설정 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="민들레런">
+    <meta name="theme-color" content="#f59e0b">
+    <!-- 앱 아이콘 (파비콘) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌼</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌼</text></svg>">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Confetti for Celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .custom-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .pulse-subtle {
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(16, 185, 129, 0.4); }
+            50% { border-color: rgba(16, 185, 129, 0.9); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 h-[100dvh] flex justify-center items-center p-0 md:p-4 text-slate-800 overflow-hidden">
+
+    <!-- 모바일 프레임 메인 컨테이너 (모바일 full height 최적화) -->
+    <div class="w-full max-w-md h-[100dvh] md:h-[844px] md:max-h-[850px] bg-white md:rounded-[38px] shadow-2xl flex flex-col overflow-hidden relative border-slate-200 md:border-[8px]">
+        
+        <!-- 상단 헤더 -->
+        <header class="bg-amber-500 text-white p-5 pt-6 rounded-b-3xl shadow-lg relative shrink-0">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🌼</span>
+                    <div>
+                        <h1 class="text-xl font-black tracking-tight">민들레런</h1>
+                        <button id="dbStatusBadge" onclick="openFirebaseModal()" class="text-[10px] bg-slate-600/90 hover:bg-slate-700 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm transition">
+                            <i class="fa-solid fa-hard-drive text-[9px]"></i> 오프라인 저장 모드 (클릭하여 DB연결)
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="resetCurrentWeekTeam()" class="text-xs bg-amber-600 hover:bg-amber-700 text-white font-semibold px-2.5 py-1.5 rounded-full flex items-center gap-1 transition border border-amber-400/40 shadow-sm active:scale-95">
+                        <i class="fa-solid fa-rotate-left"></i> 주간 초기화
+                    </button>
+                    <button onclick="exportData()" class="text-xs bg-amber-700 hover:bg-amber-800 text-white font-semibold px-2.5 py-1.5 rounded-full flex items-center gap-1 transition border border-amber-500/40 shadow-sm active:scale-95">
+                        <i class="fa-solid fa-download"></i> 백업
+                    </button>
+                </div>
+            </div>
+
+            <!-- 주차 이동 네비게이션 -->
+            <div class="flex items-center justify-between bg-amber-600/60 rounded-2xl p-2.5 backdrop-blur-sm mt-1">
+                <button onclick="changeWeek(-1)" class="w-8 h-8 rounded-xl bg-amber-500/80 hover:bg-amber-400 flex items-center justify-center text-white transition active:scale-95">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
+                <span id="currentWeekDisplay" class="font-semibold text-sm tracking-wide">주차 계산 중...</span>
+                <button onclick="changeWeek(1)" class="w-8 h-8 rounded-xl bg-amber-500/80 hover:bg-amber-400 flex items-center justify-center text-white transition active:scale-95">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+            </div>
+
+            <!-- 탭 메인 메뉴 -->
+            <div class="flex bg-amber-700/40 p-1 rounded-xl mt-3 text-xs font-semibold">
+                <button id="tabLeaderboardBtn" onclick="switchTab('leaderboard')" class="flex-1 py-2 rounded-lg text-center transition bg-white text-amber-700 shadow-sm font-bold">
+                    <i class="fa-solid fa-ranking-star mr-1"></i> 1~6팀 랭킹보드
+                </button>
+                <button id="tabTeamBtn" onclick="switchTab('team')" class="flex-1 py-2 rounded-lg text-center transition text-amber-100 hover:text-white">
+                    <i class="fa-solid fa-users mr-1"></i> 팀원별 운동 입력
+                </button>
+            </div>
+        </header>
+
+        <!-- 메인 콘텐츠 영역 -->
+        <main class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+            
+            <!-- VIEW 1: 랭킹 보드 화면 -->
+            <section id="viewLeaderboard" class="space-y-4">
+                
+                <!-- 1위 팀 하이라이트 카드 -->
+                <div id="topTeamCard" class="bg-gradient-to-r from-amber-400 to-amber-500 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex items-center justify-between">
+                    <div class="z-10">
+                        <span class="bg-amber-600/60 text-amber-100 text-[11px] font-bold px-2.5 py-0.5 rounded-full inline-block mb-1">
+                            🏆 LEADER TEAM (전체 누적 1위)
+                        </span>
+                        <h2 id="topTeamName" class="text-2xl font-black tracking-tight">1팀</h2>
+                        <p id="topTeamScore" class="text-xs text-amber-100 font-medium mt-0.5">전체 누적 0점 (이번 주 0점)</p>
+                    </div>
+                    <div class="text-4xl text-amber-100/90 z-10 pr-2">
+                        🥇
+                    </div>
+                    <i class="fa-solid fa-crown absolute -right-3 -bottom-3 text-7xl text-white/15"></i>
+                </div>
+
+                <!-- 1팀 ~ 6팀 순위 리스트 -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                        <h3 class="font-bold text-sm text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-ol text-amber-500"></i> 민들레런 팀별 실시간 랭킹
+                        </h3>
+                        <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-bolt"></i> 자동 동기화
+                        </span>
+                    </div>
+
+                    <div id="leaderboardList" class="space-y-2.5">
+                        <!-- JS Dynamic Rendering -->
+                    </div>
+                </div>
+
+                <!-- 점수 계산 방식 안내 카드 -->
+                <div class="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-3.5 text-xs text-amber-900 space-y-1.5">
+                    <p class="font-bold flex items-center gap-1 text-amber-800">
+                        <i class="fa-solid fa-circle-info text-amber-600"></i> 민들레런 점수 산정 규칙
+                    </p>
+                    <ul class="list-disc list-inside text-amber-900/90 space-y-1 pl-1 text-[11px]">
+                        <li><strong>실시간 클라우드 자동 저장:</strong> O/X를 누르면 접속 중인 모든 인원의 화면에 즉시 반영됩니다.</li>
+                        <li><strong>주간 점수 제한:</strong> 각 팀원들의 O 개수를 합산하되 주당 <strong>최대 5점</strong>까지 반영됩니다.</li>
+                        <li><strong>독립형 앱 지원:</strong> 구글 시트 연동 설정 없이 완벽한 독립 웹 앱으로 동작합니다.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- VIEW 2: 팀별 O/X 입력 화면 -->
+            <section id="viewTeamInput" class="space-y-4 hidden">
+                
+                <!-- 1팀 ~ 6팀 스위처 -->
+                <div class="grid grid-cols-6 gap-1.5 bg-slate-200/60 p-1.5 rounded-2xl text-xs font-bold" id="teamTabSelector">
+                    <!-- JS 생성 -->
+                </div>
+
+                <!-- 선택된 팀 점수 현황 요약 Card -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="selectedTeamTitle" class="text-lg font-extrabold text-slate-800">1팀</span>
+                            <span id="selectedTeamRankBadge" class="bg-amber-100 text-amber-700 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                                랭킹 1위
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">이 팀의 팀원별 달성 기록을 관리합니다.</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="flex items-baseline gap-1 justify-end">
+                            <span id="teamScoreDisplay" class="text-3xl font-black text-amber-600">0</span>
+                            <span class="text-slate-400 font-bold text-sm">/ 5점</span>
+                        </div>
+                        <span id="teamRawCountDisplay" class="text-[11px] text-amber-600 font-bold block mt-0.5">이번 주: 0점 | 누적: 0점</span>
+                    </div>
+                </div>
+
+                <!-- 팀원 추가 입력창 -->
+                <div class="flex gap-2">
+                    <input type="text" id="newMemberInput" placeholder="팀원 이름 입력 (예: 홍길동)" 
+                        class="flex-1 px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 transition shadow-sm">
+                    <button onclick="addMember()" class="bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-sm active:scale-95 flex items-center gap-1">
+                        <i class="fa-solid fa-user-plus text-xs"></i> 팀원 추가
+                    </button>
+                </div>
+
+                <!-- 요일 및 실제 날짜 헤더 -->
+                <div id="dateHeaderGrid" class="grid grid-cols-7 text-center text-[11px] font-bold text-slate-500 bg-slate-100 p-2 rounded-xl border border-slate-200/60 shadow-inner">
+                    <!-- JS 동적 생성 -->
+                </div>
+
+                <!-- 팀원 출처 안내 -->
+                <div class="flex items-center justify-between px-1 text-[11px] text-slate-400">
+                    <span><i class="fa-solid fa-cloud text-emerald-500 mr-1"></i>클라우드 DB 실시간 동기화 중</span>
+                    <span id="syncTimeDisplay" class="text-slate-400 text-[10px]">최근 업데이트 방금 전</span>
+                </div>
+
+                <!-- 선택된 팀의 팀원 목록 & O/X 체크 리스트 -->
+                <div id="memberList" class="space-y-3">
+                    <!-- JS로 동적 생성 -->
+                </div>
+            </section>
+        </main>
+
+        <!-- 하단 바 & 안내 정보 -->
+        <footer class="bg-slate-50 border-t border-slate-200/80 p-3.5 text-center shrink-0">
+            <div class="flex justify-around text-xs text-slate-500">
+                <button onclick="resetCurrentWeekTeam()" class="flex items-center gap-1.5 hover:text-rose-600 transition">
+                    <i class="fa-solid fa-rotate-left"></i> 선택팀 이번주 초기화
+                </button>
+                <span class="text-slate-300">|</span>
+                <span class="text-emerald-700 font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-shield-halved text-emerald-500"></i> 서버리스 클라우드 DB
+                </span>
+                <span class="text-slate-300">|</span>
+                <button onclick="exportData()" class="flex items-center gap-1.5 hover:text-amber-600 transition">
+                    <i class="fa-solid fa-download"></i> 데이터 백업
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase 설정 모달 추가 -->
+    <div id="firebaseModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-5 w-full max-w-sm shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-cloud text-amber-500"></i> 파이어베이스 클라우드 DB 설정
+                </h3>
+                <button onclick="closeFirebaseModal()" class="text-slate-400 hover:text-slate-600 text-sm p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-600 leading-relaxed">
+                외부 웹사이트(Netlify 등)에서 실시간 클라우드 공유를 이용하시려면 구글 파이어베이스(Firebase)의 웹 앱 설정 값(JSON)을 아래에 붙여넣어 주세요.
+            </p>
+
+            <textarea id="firebaseConfigInput" rows="5" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "..."}' 
+                class="w-full text-xs font-mono p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 transition"></textarea>
+
+            <div class="flex gap-2 pt-1">
+                <button onclick="saveCustomFirebaseConfig()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-sm">
+                    저장 및 연동하기
+                </button>
+                <button onclick="closeFirebaseModal()" class="px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs py-2.5 rounded-xl transition">
+                    취소
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 알림 메시지 -->
+    <div id="toastMessage" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white text-xs px-4 py-2.5 rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i> <span id="toastText">저장 완료</span>
+    </div>
+
+    <!-- Firebase Module JS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase 설정 및 초기화
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'dandelion-ox-tracker-app';
+        let firebaseConfig = null;
+
+        // 1. 저장된 사용자 custom config 확인
+        const savedCustomConfig = localStorage.getItem('dandelion_firebase_config_v1');
+        if (savedCustomConfig) {
+            try {
+                firebaseConfig = JSON.parse(savedCustomConfig);
+            } catch(e){}
+        }
+
+        // 2. 환경 변수 config 확인
+        if (!firebaseConfig) {
+            try {
+                if (typeof __firebase_config !== 'undefined') {
+                    firebaseConfig = JSON.parse(__firebase_config);
+                }
+            } catch (e) {}
+        }
+
+        let app, auth, db;
+        let isCloudAvailable = false;
+
+        // 전역 앱 상태 관리
+        window.currentWeekOffset = 0;
+        window.activeTab = 'leaderboard'; 
+        window.currentTeamId = 1; 
+
+        // 1팀 ~ 6팀 데이터 초기화
+        window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+
+        // 기본 샘플 데이터 구성 (최초 접속 시 사용)
+        function initDefaultTeamData() {
+            return {
+                1: [
+                    { id: 101, name: '강민수', records: {} },
+                    { id: 102, name: '이수진', records: {} }
+                ],
+                2: [{ id: 201, name: '박준호', records: {} }],
+                3: [{ id: 301, name: '최지은', records: {} }],
+                4: [{ id: 401, name: '정현우', records: {} }],
+                5: [{ id: 501, name: '한소희', records: {} }],
+                6: [{ id: 601, name: '윤도현', records: {} }]
+            };
+        }
+
+        async function initCloudDatabase() {
+            if (!firebaseConfig) {
+                loadLocalFallback();
+                return;
+            }
+
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                isCloudAvailable = true;
+                updateDbBadge(true);
+
+                // Firestore 실시간 리스너 구독 (Strict Path 규격 준수: /artifacts/{appId}/public/data/ox_state/main)
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
+                
+                onSnapshot(docRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data && data.teamData) {
+                            window.teamData = data.teamData;
+                            // Ensure 1..6 exist
+                            for (let i = 1; i <= 6; i++) {
+                                if (!window.teamData[i]) window.teamData[i] = [];
+                            }
+                            window.render();
+                            updateSyncTime();
+                        }
+                    } else {
+                        // DB 문서가 없으면 초기값 생성 후 저장
+                        window.teamData = initDefaultTeamData();
+                        window.saveCloudData();
+                    }
+                }, (error) => {
+                    console.error("Firestore 구독 에러:", error);
+                    loadLocalFallback();
+                });
+
+            } catch (err) {
+                console.error("Cloud DB 초기화 오류:", err);
+                loadLocalFallback();
+            }
+        }
+
+        // 로컬 스토리지 백업 불러오기 (네트워크 미연결 시 보조용)
+        function loadLocalFallback() {
+            updateDbBadge(false);
+            try {
+                const saved = localStorage.getItem('dandelion_ox_standalone_v1');
+                if (saved) {
+                    window.teamData = JSON.parse(saved);
+                } else {
+                    window.teamData = initDefaultTeamData();
+                }
+            } catch (e) {
+                window.teamData = initDefaultTeamData();
+            }
+            for (let i = 1; i <= 6; i++) {
+                if (!window.teamData[i]) window.teamData[i] = [];
+            }
+            window.render();
+        }
+
+        // 데이터 클라우드 & 로컬 동시 저장
+        window.saveCloudData = async function() {
+            // 로컬 스토리지 상시 저장
+            try {
+                localStorage.setItem('dandelion_ox_standalone_v1', JSON.stringify(window.teamData));
+            } catch (e) {}
+
+            // Firestore 저장
+            if (isCloudAvailable && db && auth.currentUser) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
+                    await setDoc(docRef, {
+                        teamData: window.teamData,
+                        updatedAt: Date.now(),
+                        updatedBy: auth.currentUser.uid
+                    });
+                    updateSyncTime();
+                } catch (e) {
+                    console.error("Cloud save failed:", e);
+                }
+            }
+        };
+
+        function updateDbBadge(connected) {
+            const badge = document.getElementById('dbStatusBadge');
+            if (!badge) return;
+            if (connected) {
+                badge.className = "text-[10px] bg-emerald-600/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm cursor-pointer";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span> 실시간 클라우드 DB 연결됨`;
+            } else {
+                badge.className = "text-[10px] bg-slate-600/90 hover:bg-slate-700 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm transition cursor-pointer";
+                badge.innerHTML = `<i class="fa-solid fa-hard-drive text-[9px]"></i> 오프라인 저장 모드 (클릭하여 DB연결)`;
+            }
+        }
+
+        window.openFirebaseModal = function() {
+            const modal = document.getElementById('firebaseModal');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeFirebaseModal = function() {
+            const modal = document.getElementById('firebaseModal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.saveCustomFirebaseConfig = function() {
+            const input = document.getElementById('firebaseConfigInput').value.trim();
+            if (!input) {
+                localStorage.removeItem('dandelion_firebase_config_v1');
+                alert("설정이 삭제되었습니다. 오프라인 모드로 전환됩니다.");
+                location.reload();
+                return;
+            }
+            try {
+                const parsed = JSON.parse(input);
+                localStorage.setItem('dandelion_firebase_config_v1', JSON.stringify(parsed));
+                alert("Firebase 설정이 저장되었습니다! 페이지를 새로고침합니다.");
+                location.reload();
+            } catch (e) {
+                alert("JSON 형식이 올바르지 않습니다. 정확한 Firebase Config 구문을 넣어주세요.");
+            }
+        };
+
+        function updateSyncTime() {
+            const el = document.getElementById('syncTimeDisplay');
+            if (!el) return;
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+            el.innerText = `최근 업데이트 ${timeStr}`;
+        }
+
+        // 초기화 실행
+        document.addEventListener('DOMContentLoaded', () => {
+            initCloudDatabase();
+        });
+    </script>
+
+    <script>
+        // 날짜 및 주차 계산 비즈니스 로직
+        function getWeekDates(weekOffset = 0) {
+            const now = new Date();
+            const currentDay = now.getDay(); 
+            const distanceToMon = currentDay === 0 ? -6 : 1 - currentDay;
+            
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + distanceToMon + (weekOffset * 7));
+
+            const days = [];
+            const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                
+                const month = d.getMonth() + 1;
+                const date = d.getDate();
+                
+                const shortDateStr = `${month}/${date}`;
+                const paddedDateStr = `${String(month).padStart(2, '0')}/${String(date).padStart(2, '0')}`;
+                const fullDateStr = `${d.getFullYear()}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+
+                days.push({
+                    month,
+                    date,
+                    dayName: dayNames[i],
+                    shortDateStr,
+                    paddedDateStr,
+                    fullDateStr
+                });
+            }
+            return days;
+        }
+
+        function getWeekLabel(weekOffset = window.currentWeekOffset) {
+            const dates = getWeekDates(weekOffset);
+            const mon = dates[0];
+            const sun = dates[6];
+            return `${mon.month}월 ${mon.date}일 ~ ${sun.month}월 ${sun.date}일`;
+        }
+
+        function changeWeek(delta) {
+            window.currentWeekOffset += delta;
+            render();
+        }
+
+        function switchTab(tab) {
+            window.activeTab = tab;
+            const btnBoard = document.getElementById('tabLeaderboardBtn');
+            const btnTeam = document.getElementById('tabTeamBtn');
+            const viewBoard = document.getElementById('viewLeaderboard');
+            const viewTeam = document.getElementById('viewTeamInput');
+
+            if (tab === 'leaderboard') {
+                btnBoard.className = "flex-1 py-2 rounded-lg text-center transition bg-white text-amber-700 shadow-sm font-bold";
+                btnTeam.className = "flex-1 py-2 rounded-lg text-center transition text-amber-100 hover:text-white";
+                viewBoard.classList.remove('hidden');
+                viewTeam.classList.add('hidden');
+            } else {
+                btnTeam.className = "flex-1 py-2 rounded-lg text-center transition bg-white text-amber-700 shadow-sm font-bold";
+                btnBoard.className = "flex-1 py-2 rounded-lg text-center transition text-amber-100 hover:text-white";
+                viewTeam.classList.remove('hidden');
+                viewBoard.classList.add('hidden');
+            }
+            render();
+        }
+
+        function selectTeam(teamId) {
+            window.currentTeamId = teamId;
+            renderTeamSelector();
+            render();
+        }
+
+        function renderTeamSelector() {
+            const container = document.getElementById('teamTabSelector');
+            if (!container) return;
+            container.innerHTML = '';
+
+            for (let i = 1; i <= 6; i++) {
+                const btn = document.createElement('button');
+                btn.onclick = () => selectTeam(i);
+                if (i === window.currentTeamId) {
+                    btn.className = "py-2 rounded-xl bg-amber-500 text-white font-black shadow-sm text-center";
+                } else {
+                    btn.className = "py-2 rounded-xl bg-white/70 text-slate-600 font-bold hover:bg-white text-center transition";
+                }
+                btn.innerText = `${i}팀`;
+                container.appendChild(btn);
+            }
+        }
+
+        function render() {
+            document.getElementById('currentWeekDisplay').innerText = getWeekLabel(window.currentWeekOffset);
+            renderTeamSelector();
+
+            const rankings = getAllTeamRankings();
+            renderLeaderboard(rankings);
+            renderTeamDetail(rankings);
+        }
+
+        function getMemberRecordForDate(member, dateObj) {
+            if (!member || !member.records) return '';
+            
+            for (const key of [dateObj.fullDateStr, dateObj.shortDateStr, dateObj.paddedDateStr]) {
+                if (member.records[key] !== undefined && member.records[key] !== '') {
+                    return member.records[key];
+                }
+            }
+            return '';
+        }
+
+        function setMemberRecordForDate(member, dateObj, val) {
+            if (!member.records) member.records = {};
+            const key = dateObj.fullDateStr; // 표준 ISO 형태 Key 사용
+            member.records[key] = val;
+        }
+
+        function calculateTeamScores(teamId) {
+            const dates = getWeekDates(window.currentWeekOffset);
+            const members = window.teamData[teamId] || [];
+
+            let currentWeekRawO = 0;
+            let totalRawO = 0;
+
+            members.forEach(m => {
+                if (!m.records) return;
+                Object.values(m.records).forEach(val => {
+                    if (val === 'O') totalRawO++;
+                });
+            });
+
+            dates.forEach(dObj => {
+                members.forEach(m => {
+                    const val = getMemberRecordForDate(m, dObj);
+                    if (val === 'O') currentWeekRawO++;
+                });
+            });
+
+            const currentWeekScore = Math.min(5, currentWeekRawO);
+            const totalCumulativeScore = Math.min(100, totalRawO); 
+
+            return {
+                teamId,
+                currentWeekRawO,
+                currentWeekScore,
+                totalCumulativeScore,
+                totalRawO,
+                memberCount: members.length
+            };
+        }
+
+        function getAllTeamRankings() {
+            const rankings = [];
+            for (let i = 1; i <= 6; i++) {
+                rankings.push(calculateTeamScores(i));
+            }
+
+            rankings.sort((a, b) => {
+                if (b.totalRawO !== a.totalRawO) {
+                    return b.totalRawO - a.totalRawO;
+                }
+                return b.currentWeekScore - a.currentWeekScore;
+            });
+
+            return rankings;
+        }
+
+        function renderLeaderboard(rankings) {
+            if (!rankings || rankings.length === 0) return;
+            const topTeam = rankings[0];
+            
+            document.getElementById('topTeamName').innerText = `${topTeam.teamId}팀`;
+            document.getElementById('topTeamScore').innerText = `총 ${topTeam.totalRawO}점 달성 (이번 주: ${topTeam.currentWeekScore}점 반영) / 팀원 ${topTeam.memberCount}명`;
+
+            const listEl = document.getElementById('leaderboardList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            rankings.forEach((item, index) => {
+                const rank = index + 1;
+                let medalHtml = `<span class="w-6 text-center text-sm font-bold text-slate-400">${rank}</span>`;
+                let bgStyle = "bg-slate-50 border-slate-100";
+
+                if (rank === 1) {
+                    medalHtml = `<span class="text-base">🥇</span>`;
+                    bgStyle = "bg-amber-50 border-amber-200/80";
+                } else if (rank === 2) {
+                    medalHtml = `<span class="text-base">🥈</span>`;
+                    bgStyle = "bg-slate-100/80 border-slate-200";
+                } else if (rank === 3) {
+                    medalHtml = `<span class="text-base">🥉</span>`;
+                    bgStyle = "bg-orange-50/60 border-orange-200/60";
+                }
+
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border flex items-center justify-between cursor-pointer hover:scale-[1.01] transition ${bgStyle}`;
+                card.onclick = () => {
+                    selectTeam(item.teamId);
+                    switchTab('team');
+                };
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        ${medalHtml}
+                        <div>
+                            <span class="font-bold text-sm text-slate-800">${item.teamId}팀</span>
+                            <span class="text-[11px] text-slate-400 block">팀원 ${item.memberCount}명 · 이번 주: ${item.currentWeekScore}점 (${item.currentWeekScore}/5점)</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="flex items-baseline gap-0.5 justify-end">
+                            <span class="text-xs font-bold text-amber-700 mr-1">총</span>
+                            <span class="text-lg font-black text-amber-600">${item.totalRawO}</span>
+                            <span class="text-xs text-slate-400 font-bold">점</span>
+                        </div>
+                        <span class="text-[10px] text-emerald-600 font-semibold block">이번주 반영 ${item.currentWeekScore}점</span>
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        function renderTeamDetail(rankings) {
+            document.getElementById('selectedTeamTitle').innerText = `${window.currentTeamId}팀`;
+
+            const currentRankIndex = rankings.findIndex(r => r.teamId === window.currentTeamId);
+            const currentRank = currentRankIndex + 1;
+            document.getElementById('selectedTeamRankBadge').innerText = `누적 랭킹 ${currentRank}위`;
+
+            const currentTeamStats = calculateTeamScores(window.currentTeamId);
+            document.getElementById('teamScoreDisplay').innerText = currentTeamStats.currentWeekScore;
+            document.getElementById('teamRawCountDisplay').innerText = `이번 주: ${currentTeamStats.currentWeekScore}점 | 누적: ${currentTeamStats.totalRawO}점`;
+
+            const dates = getWeekDates(window.currentWeekOffset);
+            const dateGrid = document.getElementById('dateHeaderGrid');
+            if (dateGrid) {
+                dateGrid.innerHTML = dates.map((d, idx) => {
+                    let colorClass = "text-slate-600";
+                    if (idx === 5) colorClass = "text-blue-500";
+                    if (idx === 6) colorClass = "text-rose-500";
+                    return `
+                        <div class="flex flex-col items-center">
+                            <span class="${colorClass}">${d.dayName}</span>
+                            <span class="text-[9px] text-slate-400 font-normal">${d.month}/${d.date}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const listEl = document.getElementById('memberList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            const members = window.teamData[window.currentTeamId] || [];
+
+            if (members.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-10 text-slate-400 text-sm bg-white rounded-2xl border border-slate-200/80">
+                        등록된 팀원이 없습니다.<br>상단 입력창에서 팀원을 직접 추가해 보세요!
+                    </div>
+                `;
+                return;
+            }
+
+            members.forEach(member => {
+                let memberOCount = 0;
+                dates.forEach(d => {
+                    if (getMemberRecordForDate(member, d) === 'O') memberOCount++;
+                });
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2.5";
+
+                let headerHtml = `
+                    <div class="flex justify-between items-center px-1">
+                        <span class="font-extrabold text-sm text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-user text-amber-500 text-xs"></i> ${escapeHtml(member.name)}
+                            <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                이번주: ${memberOCount}점
+                            </span>
+                        </span>
+                        <button onclick="deleteMember(${member.id})" class="text-slate-300 hover:text-rose-500 text-xs transition p-1" title="팀원 삭제">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+
+                let daysHtml = `<div class="grid grid-cols-7 gap-1.5">`;
+                dates.forEach((dateObj, idx) => {
+                    const val = getMemberRecordForDate(member, dateObj);
+                    let btnStyle = "bg-slate-100 text-slate-300 border-slate-200 hover:bg-slate-200";
+                    let content = "-";
+
+                    if (val === 'O') {
+                        btnStyle = "bg-emerald-500 text-white font-black shadow-md shadow-emerald-200 border-emerald-500 scale-105";
+                        content = "O";
+                    }
+
+                    daysHtml += `
+                        <button onclick="toggleDay(${member.id}, ${idx})" title="${dateObj.month}/${dateObj.date}(${dateObj.dayName})"
+                            class="h-10 rounded-xl text-sm transition-all duration-150 flex items-center justify-center border ${btnStyle} active:scale-90">
+                            ${content}
+                        </button>
+                    `;
+                });
+                daysHtml += `</div>`;
+
+                card.innerHTML = headerHtml + daysHtml;
+                listEl.appendChild(card);
+            });
+        }
+
+        function toggleDay(memberId, dayIndex) {
+            const dates = getWeekDates(window.currentWeekOffset);
+            const dateObj = dates[dayIndex];
+            const member = (window.teamData[window.currentTeamId] || []).find(m => m.id === memberId);
+            if (!member) return;
+
+            const currentVal = getMemberRecordForDate(member, dateObj);
+            
+            // X 제거: O와 빈값(-) 간에만 토글
+            let newVal = (currentVal === 'O') ? '' : 'O';
+
+            setMemberRecordForDate(member, dateObj, newVal);
+            render();
+
+            if (typeof window.saveCloudData === 'function') {
+                window.saveCloudData();
+            }
+            showToast(`${member.name} - ${dateObj.month}/${dateObj.date} ${newVal ? "'O' 입력" : "초기화"}`);
+
+            // Confetti effect on O mark
+            if (newVal === 'O' && typeof confetti === 'function') {
+                confetti({
+                    particleCount: 20,
+                    spread: 40,
+                    origin: { y: 0.8 }
+                });
+            }
+        }
+
+        function addMember() {
+            const input = document.getElementById('newMemberInput');
+            const name = input.value.trim();
+            if (!name) return;
+
+            if (!window.teamData[window.currentTeamId]) {
+                window.teamData[window.currentTeamId] = [];
+            }
+
+            window.teamData[window.currentTeamId].push({
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                name: name,
+                records: {}
+            });
+
+            input.value = '';
+            render();
+            if (typeof window.saveCloudData === 'function') window.saveCloudData();
+            showToast(`${name} 팀원이 추가되었습니다!`);
+        }
+
+        function deleteMember(id) {
+            window.teamData[window.currentTeamId] = window.teamData[window.currentTeamId].filter(m => m.id !== id);
+            render();
+            if (typeof window.saveCloudData === 'function') window.saveCloudData();
+            showToast('팀원이 삭제되었습니다.');
+        }
+
+        function resetCurrentWeekTeam() {
+            const dates = getWeekDates(window.currentWeekOffset);
+            const members = window.teamData[window.currentTeamId] || [];
+            members.forEach(m => {
+                dates.forEach(dObj => {
+                    setMemberRecordForDate(m, dObj, '');
+                });
+            });
+            render();
+            if (typeof window.saveCloudData === 'function') window.saveCloudData();
+            showToast(`${window.currentTeamId}팀 이번 주 기록이 초기화되었습니다.`);
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.teamData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `민들레런_클라우드_백업_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("백업 데이터 다운로드 완료!");
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastMessage');
+            document.getElementById('toastText').innerText = msg;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 2000);
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // 키보드 엔터 키 지원
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('newMemberInput');
+            if (input) {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') addMember();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
