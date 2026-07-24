@@ -162,14 +162,8 @@
                     </div>
                 </div>
 
-                <!-- 팀원 추가 입력창 -->
-                <div class="flex gap-2">
-                    <input type="text" id="newMemberInput" placeholder="팀원 이름 입력 (예: 엄태풍)" 
-                        class="flex-1 px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 transition shadow-sm">
-                    <button onclick="addMember()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-sm active:scale-95 flex items-center gap-1">
-                        <i class="fa-solid fa-user-plus text-xs"></i> 팀원 추가
-                    </button>
-                </div>
+                <!-- 관리자 전용 팀원 추가 입력창 컨테이너 (JS로 동적 렌더링) -->
+                <div id="adminMemberAddContainer"></div>
 
                 <!-- 요일 및 실제 날짜 헤더 -->
                 <div id="dateHeaderGrid" class="grid grid-cols-7 text-center text-[11px] font-bold text-slate-500 bg-slate-100 p-2 rounded-xl border border-slate-200/60 shadow-inner">
@@ -433,7 +427,7 @@
                 document.getElementById('adminLockIcon').className = "fa-solid fa-lock-open";
                 document.getElementById('adminBtnText').innerText = "ADMIN (권한됨)";
                 render();
-                showToast("관리자 권한이 인증되었습니다. 운동 입력 및 삭제가 가능합니다.");
+                showToast("관리자 권한이 인증되었습니다. 운동 입력 및 팀원 추가/삭제가 가능합니다.");
             } else if (pwd !== null) {
                 alert("비밀번호가 틀렸습니다.");
             }
@@ -553,6 +547,31 @@
                             <span>🌼</span> MDR CREW
                         </span>
                     `;
+                }
+            }
+
+            // 관리자 권한 여부에 따라 팀원 추가 입력창 표시/숨김 처리
+            const adminMemberAddContainer = document.getElementById('adminMemberAddContainer');
+            if (adminMemberAddContainer) {
+                if (window.isAdminAuthenticated) {
+                    adminMemberAddContainer.innerHTML = `
+                        <div class="flex gap-2">
+                            <input type="text" id="newMemberInput" placeholder="팀원 이름 입력 (예: 엄태풍)" 
+                                class="flex-1 px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 transition shadow-sm">
+                            <button onclick="addMember()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-sm active:scale-95 flex items-center gap-1">
+                                <i class="fa-solid fa-user-plus text-xs"></i> 팀원 추가
+                            </button>
+                        </div>
+                    `;
+                    // 이벤트 리스너 재부착
+                    const input = document.getElementById('newMemberInput');
+                    if (input) {
+                        input.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') addMember();
+                        });
+                    }
+                } else {
+                    adminMemberAddContainer.innerHTML = '';
                 }
             }
 
@@ -957,15 +976,6 @@
             };
             return text.replace(/[&<>"']/g, m => map[m]);
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const input = document.getElementById('newMemberInput');
-            if (input) {
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') addMember();
-                });
-            }
-        });
     </script>
 </body>
 </html>
