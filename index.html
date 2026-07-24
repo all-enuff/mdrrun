@@ -92,7 +92,7 @@
                 <div id="topTeamCard" class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex items-center justify-between">
                     <div class="z-10">
                         <span id="targetDayBadge" class="bg-blue-700/60 text-blue-100 text-[11px] font-bold px-2.5 py-0.5 rounded-full inline-block mb-1">
-                            🏆 LEADER TEAM  🙏엄태인 회식 기원 0일차🙏
+                            🏆 LEADER TEAM  
                         </span>
                         <h2 id="topTeamName" class="text-xl font-black tracking-tight">팀명 로딩중...</h2>
                         <p id="topTeamScore" class="text-xs text-blue-100 font-medium mt-0.5">점수 계산 중...</p>
@@ -707,7 +707,7 @@
 	if (topTeams.length === 1) {
    	 document.getElementById('topTeamName').innerText = `${topTeamNamesStr} (단독 질주 중🔥🔥🔥🔥)`;
 	} else {
-    	document.getElementById('topTeamName').innerText = `${topTeamNamesStr} (공동 1등)`;
+    	document.getElementById('topTeamName').innerText = `${topTeamNamesStr} (⚔️선두 경쟁 중)`;
 	}
             document.getElementById('topTeamScore').innerText = `총 점수 ${rankings[0].totalCumulativeScore}점 (이번 주: ${rankings[0].currentWeekScore}점)`;
 
