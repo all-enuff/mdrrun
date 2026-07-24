@@ -755,7 +755,7 @@
             document.getElementById('teamScoreDisplay').innerText = currentTeamStats.currentWeekScore;
             
             // 수정된 부분: 가로 슬래시 없이 줄바꿈되어 표현되도록 텍스트 변경
-            let perPersonMaxText = currentTeamStats.memberCount < 3 ? '인당 최대 7.5점 만점' : '인당 최대 5점 만점';
+            let perPersonMaxText = currentTeamStats.memberCount < 3 ? '인당 최대 7.5점' : '인당 최대 5점';
             document.getElementById('teamMaxScoreLabel').innerText = `${currentTeamStats.teamMaxScore}점 만점 (${perPersonMaxText})`;
             
             document.getElementById('teamRawCountDisplay').innerText = `이번 주 인증: ${currentTeamStats.currentWeekRawCount}회 | 누적 환산: ${currentTeamStats.totalCumulativeScore}점`;
