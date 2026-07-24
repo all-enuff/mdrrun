@@ -88,19 +88,24 @@
             <!-- VIEW 1: 랭킹 보드 화면 -->
             <section id="viewLeaderboard" class="space-y-4">
                 
-                <!-- 1위 팀 하이라이트 카드 (공동 1등 팀 전부 표기) -->
-                <div id="topTeamCard" class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex items-center justify-between">
-                    <div class="z-10">
-                        <span id="targetDayBadge" class="bg-blue-700/60 text-blue-100 text-[11px] font-bold px-2.5 py-0.5 rounded-full inline-block mb-1">
-                            🏆 LEADER TEAM  
-                        </span>
-                        <h2 id="topTeamName" class="text-xl font-black tracking-tight">팀명 로딩중...</h2>
-                        <p id="topTeamScore" class="text-xs text-blue-100 font-medium mt-0.5">점수 계산 중...</p>
+                <!-- 1위 팀 하이라이트 카드 -->
+                <div id="topTeamCard" class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex items-center justify-between min-h-[100px]">
+                    <div class="z-10 flex-1 min-w-0 pr-3">
+                        <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                            <span id="topTeamStatusBadge" class="bg-amber-400 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full inline-block shadow-sm">
+                                ⚔️ 선두 경쟁 중
+                            </span>
+                            <span id="targetDayBadge" class="bg-blue-700/80 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded-full inline-block">
+                                🔥챌린지 × 엄태인 회식 기원 N일차🙏
+                            </span>
+                        </div>
+                        <h2 id="topTeamName" class="text-xl sm:text-2xl font-black tracking-tight truncate">팀명 로딩중...</h2>
+                        <p id="topTeamScore" class="text-xs text-blue-100 font-medium mt-0.5 truncate">점수 계산 중...</p>
                     </div>
-                    <div class="text-4xl text-blue-100/90 z-10 pr-2">
+                    <div class="text-4xl text-blue-100/90 z-10 shrink-0">
                         🥇
                     </div>
-                    <i class="fa-solid fa-crown absolute -right-3 -bottom-3 text-7xl text-white/15"></i>
+                    <i class="fa-solid fa-crown absolute -right-3 -bottom-3 text-7xl text-white/15 pointer-events-none"></i>
                 </div>
 
                 <!-- 팀별 실시간 랭킹 리스트 (공동 등수 반영) -->
@@ -189,7 +194,6 @@
                 <span class="text-emerald-700 font-bold flex items-center gap-1.5">
                     <span>🌼</span> MDR CREW
                 </span>
-                <!-- 데이터 백업 버튼은 관리자(ADMIN) 권한일 때만 JS로 동적으로 삽입됩니다 -->
             </div>
         </footer>
     </div>
@@ -256,14 +260,7 @@
         window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
         function initDefaultTeamData() {
-            return {
-                1: [],
-                2: [],
-                3: [],
-                4: [],
-                5: [],
-                6: []
-            };
+            return { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
         }
 
         async function initCloudDatabase() {
@@ -563,7 +560,6 @@
                             </button>
                         </div>
                     `;
-                    // 이벤트 리스너 재부착
                     const input = document.getElementById('newMemberInput');
                     if (input) {
                         input.addEventListener('keypress', (e) => {
@@ -575,7 +571,7 @@
                 }
             }
 
-            // 2026년 7월 27일 기준 N일차 자동 계산
+            // 2026년 7월 27일 기준 N일차 실시간 계산
             const startDate = new Date(2026, 6, 27); 
             const today = new Date();
             const diffTime = new Date(today.getFullYear(), today.getMonth(), today.getDate()) - new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
@@ -584,7 +580,7 @@
 
             const targetBadge = document.getElementById('targetDayBadge');
             if (targetBadge) {
-                targetBadge.innerHTML = `👑 LEADER  🔥챌린지 × 엄태인 회식 기원 ${currentDayCount}일차🙏`;
+                targetBadge.innerHTML = `🔥챌린지 × 엄태인 회식 기원 ${currentDayCount}일차🙏`;
             }
 
             const rankings = getAllTeamRankings();
@@ -701,14 +697,25 @@
             if (!rankings || rankings.length === 0) return;
             
             const topTeams = rankings.filter(r => r.rank === 1);
-
             let topTeamNamesStr = topTeams.map(t => `${t.teamId}팀`).join(', ');
-	// 팀이 1개이거나, 1위를 한 팀이 단 1개 팀뿐인 경우 단독 1등으로 표시
-	if (topTeams.length === 1) {
-   	 document.getElementById('topTeamName').innerText = `${topTeamNamesStr} (단독 질주 중🔥🔥🔥🔥)`;
-	} else {
-    	document.getElementById('topTeamName').innerText = `${topTeamNamesStr} (⚔️선두 경쟁 중)`;
-	}
+
+            const nameEl = document.getElementById('topTeamName');
+            const statusBadge = document.getElementById('topTeamStatusBadge');
+
+            if (topTeams.length === 1) {
+                if (nameEl) nameEl.innerText = topTeamNamesStr;
+                if (statusBadge) {
+                    statusBadge.innerText = "🔥 단독 질주 중";
+                    statusBadge.className = "bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full inline-block shadow-sm";
+                }
+            } else {
+                if (nameEl) nameEl.innerText = topTeamNamesStr;
+                if (statusBadge) {
+                    statusBadge.innerText = "⚔️ 선두 경쟁 중";
+                    statusBadge.className = "bg-amber-400 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full inline-block shadow-sm";
+                }
+            }
+
             document.getElementById('topTeamScore').innerText = `총 점수 ${rankings[0].totalCumulativeScore}점 (이번 주: ${rankings[0].currentWeekScore}점)`;
 
             const listEl = document.getElementById('leaderboardList');
