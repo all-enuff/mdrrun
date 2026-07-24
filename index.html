@@ -758,7 +758,7 @@
             let perPersonMaxText = currentTeamStats.memberCount < 3 ? '인당 최대 7.5점' : '인당 최대 5점';
             document.getElementById('teamMaxScoreLabel').innerText = `${currentTeamStats.teamMaxScore}점 만점 (${perPersonMaxText})`;
             
-            document.getElementById('teamRawCountDisplay').innerText = `이번 주 인증: ${currentTeamStats.currentWeekRawCount}회 | 누적 환산: ${currentTeamStats.totalCumulativeScore}점`;
+            document.getElementById('teamRawCountDisplay').innerText = `이번 주 인증: ${currentTeamStats.currentWeekRawCount}회 | 누적: ${currentTeamStats.totalCumulativeScore}점`;
 
             const dates = getWeekDates(window.currentWeekOffset);
             const dateGrid = document.getElementById('dateHeaderGrid');
