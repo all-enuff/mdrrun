@@ -703,8 +703,13 @@
             const topTeams = rankings.filter(r => r.rank === 1);
 
             let topTeamNamesStr = topTeams.map(t => `${t.teamId}팀`).join(', ');
-            document.getElementById('topTeamName').innerText = `${topTeamNamesStr} (공동 1등)`;
-            document.getElementById('topTeamScore').innerText = `누적 환산 ${rankings[0].totalCumulativeScore}점 (이번 주: ${rankings[0].currentWeekScore}점)`;
+	// 팀이 1개이거나, 1위를 한 팀이 단 1개 팀뿐인 경우 단독 1등으로 표시
+	if (topTeams.length === 1) {
+   	 document.getElementById('topTeamName').innerText = `${topTeamNamesStr} (단독 선두 질주 중🏃)`;
+	} else {
+    	document.getElementById('topTeamName').innerText = `${topTeamNamesStr} (공동 1등)`;
+	}
+            document.getElementById('topTeamScore').innerText = `총 점수 ${rankings[0].totalCumulativeScore}점 (이번 주: ${rankings[0].currentWeekScore}점)`;
 
             const listEl = document.getElementById('leaderboardList');
             if (!listEl) return;
