@@ -191,14 +191,11 @@
 
         <!-- 하단 바 & 안내 정보 -->
         <footer class="bg-slate-50 border-t border-slate-200/80 p-4 text-center shrink-0">
-            <div class="flex justify-center items-center gap-3 text-xs text-slate-500">
+            <div id="footerContent" class="flex justify-center items-center gap-3 text-xs text-slate-500">
                 <span class="text-emerald-700 font-bold flex items-center gap-1.5">
-                    <i class="fa-solid fa-shield-halved text-emerald-500"></i> 서버리스 클라우드 DB
+                    <span>🌼</span> MDR CREW
                 </span>
-                <span class="text-slate-300">|</span>
-                <button onclick="exportData()" class="flex items-center gap-1.5 hover:text-blue-600 transition font-medium">
-                    <i class="fa-solid fa-download"></i> 데이터 백업
-                </button>
+                <!-- 데이터 백업 버튼은 관리자(ADMIN) 권한일 때만 JS로 동적으로 삽입됩니다 -->
             </div>
         </footer>
     </div>
@@ -537,16 +534,38 @@
             document.getElementById('currentWeekDisplay').innerText = getWeekLabel(window.currentWeekOffset);
             renderTeamSelector();
 
-            // 2026년 7월 27일 기준 N일차 자동 계산 (26일까지는 0일차, 27일부터 1일차)
+            // 하단 푸터 관리자 권한에 따른 백업 버튼 토글 렌더링
+            const footerContent = document.getElementById('footerContent');
+            if (footerContent) {
+                if (window.isAdminAuthenticated) {
+                    footerContent.innerHTML = `
+                        <span class="text-emerald-700 font-bold flex items-center gap-1.5">
+                            <span>🌼</span> MDR CREW
+                        </span>
+                        <span class="text-slate-300">|</span>
+                        <button onclick="exportData()" class="flex items-center gap-1.5 hover:text-blue-600 transition font-medium">
+                            <i class="fa-solid fa-download"></i> 데이터 백업
+                        </button>
+                    `;
+                } else {
+                    footerContent.innerHTML = `
+                        <span class="text-emerald-700 font-bold flex items-center gap-1.5">
+                            <span>🌼</span> MDR CREW
+                        </span>
+                    `;
+                }
+            }
+
+            // 2026년 7월 27일 기준 N일차 자동 계산
             const startDate = new Date(2026, 6, 27); 
             const today = new Date();
             const diffTime = new Date(today.getFullYear(), today.getMonth(), today.getDate()) - new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            const currentDayCount = diffDays > 0 ? diffDays : 0; // 27일 전(26일 등)은 0일차로 표기
+            const currentDayCount = diffDays > 0 ? diffDays : 0;
 
             const targetBadge = document.getElementById('targetDayBadge');
             if (targetBadge) {
-                targetBadge.innerHTML = `👑 LEADER　　🔥챌린지 × 엄태인 회식 기원 ${currentDayCount}일차🙏`;
+                targetBadge.innerHTML = `👑 LEADER  🔥챌린지 × 엄태인 회식 기원 ${currentDayCount}일차🙏`;
             }
 
             const rankings = getAllTeamRankings();
