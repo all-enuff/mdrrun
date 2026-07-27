@@ -347,7 +347,6 @@
 
             const footerContent = document.getElementById('footerContent');
             if (footerContent) {
-                // 슈퍼관리자(isSuperAdmin) 및 일반관리자(isAdminAuthenticated) 모두 백업/복원 버튼 표시
                 if (window.isAdminAuthenticated || window.isSuperAdmin) {
                     footerContent.innerHTML = `
                         <span class="text-emerald-700 font-bold flex items-center gap-1.5">
@@ -789,7 +788,6 @@
             }
         }
 
-        // 백업 기능 (관리자 및 슈퍼관리자 실행 가능)
         function exportData() {
             if (!window.isAdminAuthenticated && !window.isSuperAdmin) {
                 alert("⛔ 백업 기능은 관리자 권한이 필요합니다.");
@@ -805,7 +803,6 @@
             showToast("백업 데이터 다운로드 완료!");
         }
 
-        // 복원 파일 선택 창 띄우기 (관리자 및 슈퍼관리자 실행 가능)
         function triggerRestoreUpload() {
             if (!window.isAdminAuthenticated && !window.isSuperAdmin) {
                 alert("⛔ 복원 기능은 관리자 권한이 필요합니다.");
@@ -815,7 +812,6 @@
             if (fileInput) fileInput.click();
         }
 
-        // 복원 로직 실행
         function handleRestoreFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -866,7 +862,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = 'mindle-run-shared-db-v1';
         
@@ -942,6 +938,7 @@
             if (typeof window.render === 'function') window.render();
         }
 
+        // 서버의 "최신 데이터"를 먼저 읽어온 뒤 O/X 항목 하나만 수정해 병합하는 함수 (유실 차단 핵심)
         window.saveSingleRecord = async function(teamId, memberId, dateKey, newValue) {
             try {
                 localStorage.setItem('dandelion_ox_standalone_v1', JSON.stringify(window.teamData));
@@ -949,13 +946,42 @@
 
             if (isCloudAvailable && db && auth.currentUser) {
                 try {
-                    window.saveCloudData();
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
+                    
+                    // 1. 서버에서 가장 최신의 데이터 원본을 가져옴
+                    const docSnap = await getDoc(docRef);
+
+                    let latestTeamData = window.teamData;
+                    if (docSnap.exists() && docSnap.data().teamData) {
+                        latestTeamData = docSnap.data().teamData;
+                    }
+
+                    // 2. 최신 데이터 상에서 해당 유저의 특정 날짜만 교체
+                    if (latestTeamData[teamId]) {
+                        const member = latestTeamData[teamId].find(m => String(m.id) === String(memberId));
+                        if (member) {
+                            if (!member.records) member.records = {};
+                            member.records[dateKey] = newValue;
+
+                            // 3. 변경된 최신 데이터를 로컬 및 서버에 저장
+                            window.teamData = latestTeamData;
+
+                            await setDoc(docRef, {
+                                teamData: latestTeamData,
+                                updatedAt: Date.now(),
+                                updatedBy: auth.currentUser.uid
+                            }, { merge: true });
+
+                            updateSyncTime();
+                        }
+                    }
                 } catch (e) {
-                    console.error("저장 중 오류 발생:", e);
+                    console.error("안전 저장 중 오류 발생:", e);
                 }
             }
         };
 
+        // 팀원 추가/삭제/복원 등 배열 전체 구조가 바뀔 때 실행되는 함수
         window.saveCloudData = async function() {
             try {
                 localStorage.setItem('dandelion_ox_standalone_v1', JSON.stringify(window.teamData));
