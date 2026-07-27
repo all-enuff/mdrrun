@@ -153,7 +153,7 @@
                     </div>
                     <div class="text-right flex flex-col items-end">
                         <span id="teamScoreDisplay" class="text-3xl font-black text-blue-600 leading-none">0</span>
-                        <span id="teamMaxScoreLabel" class="text-slate-400 font-bold text-xs mt-1">인당 최대 15점</span>
+                        <span id="teamMaxScoreLabel" class="text-slate-400 font-bold text-xs mt-1">인당 최대 5점</span>
                         <span id="teamRawCountDisplay" class="text-[11px] text-blue-600 font-bold block mt-1">이번 주: 0점 | 누적: 0점</span>
                     </div>
                 </div>
@@ -179,6 +179,8 @@
                     <span>🌼</span> MDR CREW
                 </span>
             </div>
+            <!-- 백업 복원용 숨김 파일 업로드 태그 -->
+            <input type="file" id="restoreFileInput" accept=".json" class="hidden" onchange="handleRestoreFile(event)">
         </footer>
     </div>
 
@@ -195,7 +197,6 @@
         window.currentTeamId = 1; 
         window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
-        // 안전한 배열 파싱 함수 (객체로 왜곡된 형태 복구)
         function sanitizeTeamData() {
             if (!window.teamData || typeof window.teamData !== 'object') {
                 window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
@@ -346,14 +347,19 @@
 
             const footerContent = document.getElementById('footerContent');
             if (footerContent) {
-                if (window.isSuperAdmin) {
+                // 슈퍼관리자(isSuperAdmin) 및 일반관리자(isAdminAuthenticated) 모두 백업/복원 버튼 표시
+                if (window.isAdminAuthenticated || window.isSuperAdmin) {
                     footerContent.innerHTML = `
                         <span class="text-emerald-700 font-bold flex items-center gap-1.5">
                             <span>🌼</span> MDR CREW
                         </span>
                         <span class="text-slate-300">|</span>
-                        <button onclick="exportData()" class="flex items-center gap-1.5 hover:text-blue-600 transition font-medium">
-                            <i class="fa-solid fa-download"></i> 데이터 백업
+                        <button onclick="exportData()" class="flex items-center gap-1 hover:text-blue-600 transition font-medium">
+                            <i class="fa-solid fa-download"></i> 백업
+                        </button>
+                        <span class="text-slate-300">|</span>
+                        <button onclick="triggerRestoreUpload()" class="flex items-center gap-1 hover:text-amber-600 transition font-medium text-amber-700">
+                            <i class="fa-solid fa-upload"></i> 복원
                         </button>
                     `;
                 } else {
@@ -428,8 +434,7 @@
             let members = window.teamData[teamId] || [];
 
             const memberCount = members.length;
-            const multiplier = (memberCount > 0 && memberCount < 3) ? 1.5 : 1.0;
-            const teamMaxScore = memberCount * 5 * multiplier;
+            const teamMaxScore = memberCount * 5; 
 
             let currentWeekRawCount = 0; 
             let memberWeekScores = {};
@@ -444,11 +449,10 @@
                 });
                 currentWeekRawCount += count;
                 let cappedCount = Math.min(5, count);
-                memberWeekScores[m.id] = cappedCount * multiplier;
+                memberWeekScores[m.id] = cappedCount;
             });
 
-            let calculatedWeekScore = Object.values(memberWeekScores).reduce((a, b) => a + b, 0);
-            let currentWeekScore = Math.min(teamMaxScore, Math.round(calculatedWeekScore * 10) / 10);
+            let currentWeekScore = Object.values(memberWeekScores).reduce((a, b) => a + b, 0);
 
             let allWeeksMap = {}; 
             members.forEach(m => {
@@ -467,12 +471,10 @@
                 });
             });
 
-            let totalCappedWeightedSum = 0;
+            let totalCumulativeScore = 0;
             Object.values(allWeeksMap).forEach(cnt => {
-                totalCappedWeightedSum += Math.min(5, cnt) * multiplier;
+                totalCumulativeScore += Math.min(5, cnt);
             });
-
-            let totalCumulativeScore = Math.round(totalCappedWeightedSum * 10) / 10;
 
             return {
                 teamId,
@@ -480,7 +482,6 @@
                 currentWeekScore,
                 totalCumulativeScore,
                 memberCount,
-                multiplier,
                 teamMaxScore,
                 members
             };
@@ -583,15 +584,13 @@
                     membersHtml = `<span class="text-xs text-slate-400 italic">등록된 팀원 없음</span>`;
                 }
 
-                let ruleBadgeText = item.memberCount < 3 ? `팀원 ${item.memberCount}명 (1.5배)` : `팀원 ${item.memberCount}명`;
-
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             ${medalHtml}
                             <div>
                                 <span class="font-bold text-sm text-slate-800">${item.teamId}팀</span>
-                                <span class="text-[11px] text-slate-500 font-medium ml-1">(${ruleBadgeText})</span>
+                                <span class="text-[11px] text-slate-500 font-medium ml-1">(팀원 ${item.memberCount}명)</span>
                             </div>
                         </div>
                         <div class="text-right">
@@ -622,9 +621,8 @@
             const scoreDisplayEl = document.getElementById('teamScoreDisplay');
             if (scoreDisplayEl) scoreDisplayEl.innerText = currentTeamStats.currentWeekScore;
             
-            let perPersonMaxText = currentTeamStats.memberCount < 3 ? '인당 최대 7.5점' : '인당 최대 5점';
             const maxScoreEl = document.getElementById('teamMaxScoreLabel');
-            if (maxScoreEl) maxScoreEl.innerText = `${currentTeamStats.teamMaxScore}점 만점 (${perPersonMaxText})`;
+            if (maxScoreEl) maxScoreEl.innerText = `${currentTeamStats.teamMaxScore}점 만점 (인당 최대 5점)`;
             
             const rawCountEl = document.getElementById('teamRawCountDisplay');
             if (rawCountEl) rawCountEl.innerText = `이번 주 인증: ${currentTeamStats.currentWeekRawCount}회 | 누적: ${currentTeamStats.totalCumulativeScore}점`;
@@ -665,8 +663,7 @@
                 dates.forEach(d => {
                     if (getMemberRecordForDate(member, d) === 'O') memberOCount++;
                 });
-                let effectiveScore = Math.min(5, memberOCount) * currentTeamStats.multiplier;
-                let maxAllowedScore = 5 * currentTeamStats.multiplier;
+                let effectiveScore = Math.min(5, memberOCount);
 
                 const card = document.createElement('div');
                 card.className = "bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2.5";
@@ -685,7 +682,7 @@
                         <span class="font-extrabold text-sm text-slate-800 flex items-center gap-1.5">
                             <i class="fa-solid fa-user text-blue-600 text-xs"></i> ${escapeHtml(member.name)}
                             <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                이번주 인정 점수: ${effectiveScore}/${maxAllowedScore}점 ${memberOCount > 5 ? '(5회 상한 적용됨)' : ''}
+                                이번주 인정 점수: ${effectiveScore}/5점 ${memberOCount > 5 ? '(5회 상한 적용됨)' : ''}
                             </span>
                         </span>
                         ${deleteButtonHtml}
@@ -792,9 +789,10 @@
             }
         }
 
+        // 백업 기능 (관리자 및 슈퍼관리자 실행 가능)
         function exportData() {
-            if (!window.isSuperAdmin) {
-                alert("⛔ 백업 기능은 슈퍼 관리자(SUPER ADMIN) 권한이 필요합니다.");
+            if (!window.isAdminAuthenticated && !window.isSuperAdmin) {
+                alert("⛔ 백업 기능은 관리자 권한이 필요합니다.");
                 return;
             }
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.teamData, null, 2));
@@ -805,6 +803,46 @@
             downloadAnchor.click();
             downloadAnchor.remove();
             showToast("백업 데이터 다운로드 완료!");
+        }
+
+        // 복원 파일 선택 창 띄우기 (관리자 및 슈퍼관리자 실행 가능)
+        function triggerRestoreUpload() {
+            if (!window.isAdminAuthenticated && !window.isSuperAdmin) {
+                alert("⛔ 복원 기능은 관리자 권한이 필요합니다.");
+                return;
+            }
+            const fileInput = document.getElementById('restoreFileInput');
+            if (fileInput) fileInput.click();
+        }
+
+        // 복원 로직 실행
+        function handleRestoreFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    if (typeof parsedData === 'object' && parsedData !== null) {
+                        if (confirm("백업 파일의 데이터로 클라우드 DB를 덮어씌우시겠습니까?")) {
+                            window.teamData = parsedData;
+                            sanitizeTeamData();
+                            render();
+                            if (typeof window.saveCloudData === 'function') {
+                                window.saveCloudData();
+                            }
+                            showToast("📂 백업 데이터가 성공적으로 복원되었습니다!");
+                        }
+                    } else {
+                        alert("올바르지 않은 백업 파일 형식입니다.");
+                    }
+                } catch (err) {
+                    alert("JSON 파일을 읽는 중 오류가 발생했습니다.");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
         }
 
         function showToast(msg) {
