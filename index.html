@@ -10,7 +10,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="민들레런">
     <meta name="theme-color" content="#2563eb">
-    <!-- 앱 아이콘 (파비콘) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌼</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌼</text></svg>">
 
@@ -38,7 +37,6 @@
 </head>
 <body class="bg-slate-100 h-[100dvh] flex justify-center items-center p-0 md:p-4 text-slate-800 overflow-hidden">
 
-    <!-- 모바일 프레임 메인 컨테이너 -->
     <div class="w-full max-w-md h-[100dvh] md:h-[844px] md:max-h-[850px] bg-white md:rounded-[38px] shadow-2xl flex flex-col overflow-hidden relative border-slate-200 md:border-[8px]">
         
         <!-- 상단 헤더 -->
@@ -48,7 +46,6 @@
                     <span class="text-2xl">🌼</span>
                     <div>
                         <h1 class="text-xl font-black tracking-tight">민들레런</h1>
-                        <!-- 🔒 DB 상태 바 -->
                         <div id="dbStatusBadge" class="text-[10px] bg-slate-700/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm">
                             <i class="fa-solid fa-hard-drive text-[9px]"></i> 오프라인 저장 모드
                         </div>
@@ -89,7 +86,6 @@
             <!-- VIEW 1: 랭킹 보드 화면 -->
             <section id="viewLeaderboard" class="space-y-4">
                 
-                <!-- 1위 팀 하이라이트 카드 -->
                 <div id="topTeamCard" class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex items-center justify-between min-h-[100px]">
                     <div class="z-10 flex-1 min-w-0 pr-3">
                         <div class="flex items-center gap-1.5 flex-wrap mb-1">
@@ -109,7 +105,6 @@
                     <i class="fa-solid fa-crown absolute -right-3 -bottom-3 text-7xl text-white/15 pointer-events-none"></i>
                 </div>
 
-                <!-- 팀별 실시간 랭킹 리스트 (공동 등수 반영) -->
                 <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
                     <div class="flex justify-between items-center pb-2 border-b border-slate-100">
                         <h3 class="font-bold text-sm text-slate-700 flex items-center gap-1.5">
@@ -121,11 +116,9 @@
                     </div>
 
                     <div id="leaderboardList" class="space-y-2.5">
-                        <!-- JS Dynamic Rendering -->
                     </div>
                 </div>
 
-                <!-- 점수 계산 방식 안내 카드 -->
                 <div class="bg-blue-50/80 border border-blue-200/80 rounded-2xl p-3.5 text-xs text-blue-900 space-y-1.5">
                     <p class="font-bold flex items-center gap-1 text-blue-800">
                         <i class="fa-solid fa-circle-info text-blue-600"></i> 민들레런 챌린지 규칙
@@ -145,12 +138,9 @@
             <!-- VIEW 2: 팀별 O/X 입력 화면 -->
             <section id="viewTeamInput" class="space-y-4 hidden">
                 
-                <!-- 1팀 ~ 6팀 스위처 -->
                 <div class="grid grid-cols-6 gap-1.5 bg-slate-200/60 p-1.5 rounded-2xl text-xs font-bold" id="teamTabSelector">
-                    <!-- JS 생성 -->
                 </div>
 
-                <!-- 선택된 팀 점수 현황 요약 Card -->
                 <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 flex items-center justify-between">
                     <div>
                         <div class="flex items-center gap-2">
@@ -168,28 +158,21 @@
                     </div>
                 </div>
 
-                <!-- 관리자 전용 팀원 추가 입력창 컨테이너 (JS로 동적 렌더링) -->
                 <div id="adminMemberAddContainer"></div>
 
-                <!-- 요일 및 실제 날짜 헤더 -->
                 <div id="dateHeaderGrid" class="grid grid-cols-7 text-center text-[11px] font-bold text-slate-500 bg-slate-100 p-2 rounded-xl border border-slate-200/60 shadow-inner">
-                    <!-- JS 동적 생성 -->
                 </div>
 
-                <!-- 팀원 출처 안내 -->
                 <div class="flex items-center justify-between px-1 text-[11px] text-slate-400">
                     <span><i class="fa-solid fa-cloud text-emerald-500 mr-1"></i>클라우드 DB 실시간 동기화 중</span>
                     <span id="syncTimeDisplay" class="text-slate-400 text-[10px]">최근 업데이트 방금 전</span>
                 </div>
 
-                <!-- 선택된 팀의 팀원 목록 & O 체크 리스트 -->
                 <div id="memberList" class="space-y-3">
-                    <!-- JS로 동적 생성 -->
                 </div>
             </section>
         </main>
 
-        <!-- 하단 바 & 안내 정보 -->
         <footer class="bg-slate-50 border-t border-slate-200/80 p-4 text-center shrink-0">
             <div id="footerContent" class="flex justify-center items-center gap-3 text-xs text-slate-500">
                 <span class="text-emerald-700 font-bold flex items-center gap-1.5">
@@ -199,194 +182,35 @@
         </footer>
     </div>
 
-    <!-- 토스트 알림 메시지 -->
     <div id="toastMessage" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white text-xs px-4 py-2.5 rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-emerald-400"></i> <span id="toastText">저장 완료</span>
     </div>
 
-    <!-- Firebase Module JS (오프라인 캐싱 & 필드 단위 동기화 적용) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = 'mindle-run-shared-db-v1';
-        
-        // 🔒 변경 불가능하도록 고정된 파이어베이스 Config 객체
-        const firebaseConfig = Object.freeze({
-            apiKey: "AIzaSyBFTpzML6JYHQ0h-MPIBugMQ_0ZIlYWgrg",
-            authDomain: "mdrrun-1658a.firebaseapp.com",
-            projectId: "mdrrun-1658a",
-            storageBucket: "mdrrun-1658a.firebasestorage.app",
-            messagingSenderId: "125950603470",
-            appId: "1:125950603470:web:e11c876b5f83fdd983609f",
-            measurementId: "G-QR1HLKN3N2"
-        });
-
-        let app, auth, db;
-        let isCloudAvailable = false;
-
+    <!-- 1. 메인 렌더링 스크립트 -->
+    <script>
+        window.isAdminAuthenticated = false;
+        window.isSuperAdmin = false;
         window.currentWeekOffset = 0;
         window.activeTab = 'leaderboard'; 
         window.currentTeamId = 1; 
-
         window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
-        function initDefaultTeamData() {
-            return { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
-        }
-
-        async function initCloudDatabase() {
-            try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                // 🛡️ 오프라인 캐싱 및 지속성 활성화 (네트워크 연결 끊김 대비)
-                try {
-                    await enableIndexedDbPersistence(db);
-                } catch (err) {
-                    if (err.code === 'failed-precondition') {
-                        console.warn("오프라인 캐시는 단일 탭에서 활성화됩니다.");
-                    } else if (err.code === 'unimplemented') {
-                        console.warn("현재 브라우저는 오프라인 캐시를 지원하지 않습니다.");
-                    }
-                }
-
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                isCloudAvailable = true;
-                updateDbBadge(true);
-
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
-                
-                onSnapshot(docRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data && data.teamData) {
-                            window.teamData = data.teamData;
-                            for (let i = 1; i <= 6; i++) {
-                                if (!window.teamData[i]) window.teamData[i] = [];
-                            }
-                            window.render();
-                            updateSyncTime();
-                        }
-                    } else {
-                        setDoc(docRef, { teamData: window.teamData, updatedAt: Date.now() });
-                    }
-                }, (error) => {
-                    console.error("Firestore 구독 에러:", error);
-                    loadLocalFallback();
-                });
-
-            } catch (err) {
-                console.error("Cloud DB 초기화 오류:", err);
-                loadLocalFallback();
-            }
-        }
-
-        function loadLocalFallback() {
-            updateDbBadge(false);
-            try {
-                const saved = localStorage.getItem('dandelion_ox_standalone_v1');
-                if (saved) {
-                    window.teamData = JSON.parse(saved);
-                } else {
-                    window.teamData = initDefaultTeamData();
-                }
-            } catch (e) {
-                window.teamData = initDefaultTeamData();
+        // 안전한 배열 파싱 함수 (객체로 왜곡된 형태 복구)
+        function sanitizeTeamData() {
+            if (!window.teamData || typeof window.teamData !== 'object') {
+                window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
             }
             for (let i = 1; i <= 6; i++) {
-                if (!window.teamData[i]) window.teamData[i] = [];
-            }
-            window.render();
-        }
-
-        // 🛡️ 단일 기록 전용 안전 업데이트 함수 (동시 수정 덮어쓰기 방지)
-        window.saveSingleRecord = async function(teamId, memberId, dateKey, newValue) {
-            try {
-                localStorage.setItem('dandelion_ox_standalone_v1', JSON.stringify(window.teamData));
-            } catch (e) {}
-
-            if (isCloudAvailable && db && auth.currentUser) {
-                try {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
-                    const teamList = window.teamData[teamId] || [];
-                    const memberIndex = teamList.findIndex(m => m.id === memberId);
-
-                    if (memberIndex !== -1) {
-                        const updatePath = `teamData.${teamId}.${memberIndex}.records.${dateKey}`;
-                        await updateDoc(docRef, {
-                            [updatePath]: newValue,
-                            updatedAt: Date.now(),
-                            updatedBy: auth.currentUser.uid
-                        });
-                        updateSyncTime();
-                    } else {
-                        window.saveCloudData();
-                    }
-                } catch (e) {
-                    console.error("단일 기록 업데이트 오류 (전체 저장으로 대체):", e);
-                    window.saveCloudData();
+                let raw = window.teamData[i];
+                if (Array.isArray(raw)) {
+                    window.teamData[i] = raw;
+                } else if (raw && typeof raw === 'object') {
+                    window.teamData[i] = Object.values(raw);
+                } else {
+                    window.teamData[i] = [];
                 }
             }
-        };
-
-        // 팀원 추가/삭제 등 전체 구조 변경 시 사용
-        window.saveCloudData = async function() {
-            try {
-                localStorage.setItem('dandelion_ox_standalone_v1', JSON.stringify(window.teamData));
-            } catch (e) {}
-
-            if (isCloudAvailable && db && auth.currentUser) {
-                try {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
-                    await setDoc(docRef, {
-                        teamData: window.teamData,
-                        updatedAt: Date.now(),
-                        updatedBy: auth.currentUser.uid
-                    }, { merge: true });
-                    updateSyncTime();
-                } catch (e) {
-                    console.error("Cloud save failed:", e);
-                }
-            }
-        };
-
-        function updateDbBadge(connected) {
-            const badge = document.getElementById('dbStatusBadge');
-            if (!badge) return;
-            if (connected) {
-                badge.className = "text-[10px] bg-emerald-600/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span> 실시간 클라우드 DB 연결됨`;
-            } else {
-                badge.className = "text-[10px] bg-slate-700/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm";
-                badge.innerHTML = `<i class="fa-solid fa-hard-drive text-[9px]"></i> 오프라인 저장 모드`;
-            }
         }
-
-        function updateSyncTime() {
-            const el = document.getElementById('syncTimeDisplay');
-            if (!el) return;
-            const now = new Date();
-            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-            el.innerText = `최근 업데이트 ${timeStr}`;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initCloudDatabase();
-        });
-    </script>
-
-    <script>
-        // 권한 상태 변수 (일반 관리자 vs 슈퍼 관리자)
-        window.isAdminAuthenticated = false;
-        window.isSuperAdmin = false;
 
         function requestAdminAuth() {
             if (window.isAdminAuthenticated || window.isSuperAdmin) {
@@ -408,14 +232,14 @@
                 document.getElementById('adminLockIcon').className = "fa-solid fa-shield-halved text-amber-300";
                 document.getElementById('adminBtnText').innerText = "SUPER ADMIN";
                 render();
-                showToast("⚡ 슈퍼 관리자 권한이 인증되었습니다 (삭제 권한 활성화)");
+                showToast("⚡ 슈퍼 관리자 권한이 인증되었습니다.");
             } else if (pwd === "8373") {
                 window.isAdminAuthenticated = true;
                 window.isSuperAdmin = false;
                 document.getElementById('adminLockIcon').className = "fa-solid fa-lock-open";
                 document.getElementById('adminBtnText').innerText = "ADMIN (권한됨)";
                 render();
-                showToast("관리자 권한이 인증되었습니다 (운동 입력 및 팀원 추가 전용)");
+                showToast("관리자 권한이 인증되었습니다.");
             } else if (pwd !== null) {
                 alert("비밀번호가 올바르지 않습니다.");
             }
@@ -513,7 +337,11 @@
         }
 
         function render() {
-            document.getElementById('currentWeekDisplay').innerText = getWeekLabel(window.currentWeekOffset);
+            sanitizeTeamData();
+
+            const currentWeekDisplay = document.getElementById('currentWeekDisplay');
+            if (currentWeekDisplay) currentWeekDisplay.innerText = getWeekLabel(window.currentWeekOffset);
+            
             renderTeamSelector();
 
             const footerContent = document.getElementById('footerContent');
@@ -576,9 +404,10 @@
             renderTeamDetail(rankings);
         }
 
+        window.render = render; 
+
         function getMemberRecordForDate(member, dateObj) {
             if (!member || !member.records) return '';
-            
             for (const key of [dateObj.fullDateStr, dateObj.shortDateStr, dateObj.paddedDateStr]) {
                 if (member.records[key] !== undefined && member.records[key] !== '') {
                     return member.records[key];
@@ -594,17 +423,21 @@
         }
 
         function calculateTeamScores(teamId) {
+            sanitizeTeamData();
             const dates = getWeekDates(window.currentWeekOffset);
-            const members = window.teamData[teamId] || [];
-            const memberCount = members.length;
+            let members = window.teamData[teamId] || [];
 
+            const memberCount = members.length;
             const multiplier = (memberCount > 0 && memberCount < 3) ? 1.5 : 1.0;
             const teamMaxScore = memberCount * 5 * multiplier;
 
             let currentWeekRawCount = 0; 
-
             let memberWeekScores = {};
+
             members.forEach(m => {
+                if (!m || typeof m !== 'object') return;
+                if (!m.records) m.records = {};
+
                 let count = 0;
                 dates.forEach(dObj => {
                     if (getMemberRecordForDate(m, dObj) === 'O') count++;
@@ -619,7 +452,7 @@
 
             let allWeeksMap = {}; 
             members.forEach(m => {
-                if (!m.records) return;
+                if (!m || !m.records) return;
                 Object.entries(m.records).forEach(([dateStr, val]) => {
                     if (val === 'O') {
                         let d = new Date(dateStr);
@@ -682,13 +515,17 @@
         }
 
         function renderLeaderboard(rankings) {
-            if (!rankings || rankings.length === 0) return;
+            const nameEl = document.getElementById('topTeamName');
+            const scoreEl = document.getElementById('topTeamScore');
+            const statusBadge = document.getElementById('topTeamStatusBadge');
+
+            if (!rankings || rankings.length === 0) {
+                if (nameEl) nameEl.innerText = "1팀";
+                return;
+            }
             
             const topTeams = rankings.filter(r => r.rank === 1);
             let topTeamNamesStr = topTeams.map(t => `${t.teamId}팀`).join(', ');
-
-            const nameEl = document.getElementById('topTeamName');
-            const statusBadge = document.getElementById('topTeamStatusBadge');
 
             if (topTeams.length === 1) {
                 if (nameEl) nameEl.innerText = topTeamNamesStr;
@@ -704,7 +541,9 @@
                 }
             }
 
-            document.getElementById('topTeamScore').innerText = `총 점수 ${rankings[0].totalCumulativeScore}점 (이번 주: ${rankings[0].currentWeekScore}점)`;
+            if (scoreEl) {
+                scoreEl.innerText = `총 점수 ${rankings[0].totalCumulativeScore}점 (이번 주: ${rankings[0].currentWeekScore}점)`;
+            }
 
             const listEl = document.getElementById('leaderboardList');
             if (!listEl) return;
@@ -773,17 +612,22 @@
         }
 
         function renderTeamDetail(rankings) {
-            document.getElementById('selectedTeamTitle').innerText = `${window.currentTeamId}팀`;
+            const titleEl = document.getElementById('selectedTeamTitle');
+            if (titleEl) titleEl.innerText = `${window.currentTeamId}팀`;
 
             const currentTeamStats = rankings.find(r => r.teamId === window.currentTeamId) || calculateTeamScores(window.currentTeamId);
-            document.getElementById('selectedTeamRankBadge').innerText = `누적 랭킹 ${currentTeamStats.rank}위`;
+            const rankBadgeEl = document.getElementById('selectedTeamRankBadge');
+            if (rankBadgeEl) rankBadgeEl.innerText = `누적 랭킹 ${currentTeamStats.rank}위`;
 
-            document.getElementById('teamScoreDisplay').innerText = currentTeamStats.currentWeekScore;
+            const scoreDisplayEl = document.getElementById('teamScoreDisplay');
+            if (scoreDisplayEl) scoreDisplayEl.innerText = currentTeamStats.currentWeekScore;
             
             let perPersonMaxText = currentTeamStats.memberCount < 3 ? '인당 최대 7.5점' : '인당 최대 5점';
-            document.getElementById('teamMaxScoreLabel').innerText = `${currentTeamStats.teamMaxScore}점 만점 (${perPersonMaxText})`;
+            const maxScoreEl = document.getElementById('teamMaxScoreLabel');
+            if (maxScoreEl) maxScoreEl.innerText = `${currentTeamStats.teamMaxScore}점 만점 (${perPersonMaxText})`;
             
-            document.getElementById('teamRawCountDisplay').innerText = `이번 주 인증: ${currentTeamStats.currentWeekRawCount}회 | 누적: ${currentTeamStats.totalCumulativeScore}점`;
+            const rawCountEl = document.getElementById('teamRawCountDisplay');
+            if (rawCountEl) rawCountEl.innerText = `이번 주 인증: ${currentTeamStats.currentWeekRawCount}회 | 누적: ${currentTeamStats.totalCumulativeScore}점`;
 
             const dates = getWeekDates(window.currentWeekOffset);
             const dateGrid = document.getElementById('dateHeaderGrid');
@@ -830,7 +674,7 @@
                 let deleteButtonHtml = '';
                 if (window.isSuperAdmin) {
                     deleteButtonHtml = `
-                        <button onclick="deleteMember(${member.id})" class="text-rose-400 hover:text-rose-600 text-xs transition p-1" title="팀원 삭제 (슈퍼관리자 권한)">
+                        <button onclick="deleteMember(${member.id})" class="text-rose-400 hover:text-rose-600 text-xs transition p-1" title="팀원 삭제">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     `;
@@ -877,7 +721,6 @@
             });
         }
 
-        // 🛡️ 개별 클릭 시 해당 필드만 단독 업데이트 처리
         function toggleDay(memberId, dayIndex) {
             if (!window.isAdminAuthenticated) {
                 alert("관리자 권한이 필요합니다.");
@@ -913,12 +756,11 @@
         function addMember() {
             if (!window.isAdminAuthenticated) {
                 alert("관리자 권한이 필요합니다.");
-                showToast("관리자 권한이 필요합니다.");
                 return;
             }
 
             const input = document.getElementById('newMemberInput');
-            const name = input.value.trim();
+            const name = input ? input.value.trim() : '';
             if (!name) return;
 
             if (!window.teamData[window.currentTeamId]) {
@@ -931,7 +773,7 @@
                 records: {}
             });
 
-            input.value = '';
+            if (input) input.value = '';
             render();
             if (typeof window.saveCloudData === 'function') window.saveCloudData();
             showToast(`${name} 팀원이 추가되었습니다!`);
@@ -967,6 +809,7 @@
 
         function showToast(msg) {
             const toast = document.getElementById('toastMessage');
+            if (!toast) return;
             document.getElementById('toastText').innerText = msg;
             toast.classList.add('opacity-100');
             setTimeout(() => {
@@ -975,15 +818,150 @@
         }
 
         function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
+            if (!text) return '';
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
         }
+    </script>
+
+    <!-- 2. Firebase Module JS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = 'mindle-run-shared-db-v1';
+        
+        const firebaseConfig = Object.freeze({
+            apiKey: "AIzaSyBFTpzML6JYHQ0h-MPIBugMQ_0ZIlYWgrg",
+            authDomain: "mdrrun-1658a.firebaseapp.com",
+            projectId: "mdrrun-1658a",
+            storageBucket: "mdrrun-1658a.firebasestorage.app",
+            messagingSenderId: "125950603470",
+            appId: "1:125950603470:web:e11c876b5f83fdd983609f",
+            measurementId: "G-QR1HLKN3N2"
+        });
+
+        let app, auth, db;
+        let isCloudAvailable = false;
+
+        function initDefaultTeamData() {
+            return { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+        }
+
+        async function initCloudDatabase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                isCloudAvailable = true;
+                updateDbBadge(true);
+
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
+                
+                onSnapshot(docRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data && data.teamData) {
+                            window.teamData = data.teamData;
+                            if (typeof window.render === 'function') window.render();
+                            updateSyncTime();
+                        }
+                    } else {
+                        setDoc(docRef, { teamData: window.teamData, updatedAt: Date.now() });
+                        if (typeof window.render === 'function') window.render();
+                    }
+                }, (error) => {
+                    console.error("Firestore 구독 에러:", error);
+                    loadLocalFallback();
+                });
+
+            } catch (err) {
+                console.error("Cloud DB 초기화 오류:", err);
+                loadLocalFallback();
+            }
+        }
+
+        function loadLocalFallback() {
+            updateDbBadge(false);
+            try {
+                const saved = localStorage.getItem('dandelion_ox_standalone_v1');
+                if (saved) {
+                    window.teamData = JSON.parse(saved);
+                } else {
+                    window.teamData = initDefaultTeamData();
+                }
+            } catch (e) {
+                window.teamData = initDefaultTeamData();
+            }
+            if (typeof window.render === 'function') window.render();
+        }
+
+        window.saveSingleRecord = async function(teamId, memberId, dateKey, newValue) {
+            try {
+                localStorage.setItem('dandelion_ox_standalone_v1', JSON.stringify(window.teamData));
+            } catch (e) {}
+
+            if (isCloudAvailable && db && auth.currentUser) {
+                try {
+                    window.saveCloudData();
+                } catch (e) {
+                    console.error("저장 중 오류 발생:", e);
+                }
+            }
+        };
+
+        window.saveCloudData = async function() {
+            try {
+                localStorage.setItem('dandelion_ox_standalone_v1', JSON.stringify(window.teamData));
+            } catch (e) {}
+
+            if (isCloudAvailable && db && auth.currentUser) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
+                    await setDoc(docRef, {
+                        teamData: window.teamData,
+                        updatedAt: Date.now(),
+                        updatedBy: auth.currentUser.uid
+                    }, { merge: true });
+                    updateSyncTime();
+                } catch (e) {
+                    console.error("Cloud save failed:", e);
+                }
+            }
+        };
+
+        function updateDbBadge(connected) {
+            const badge = document.getElementById('dbStatusBadge');
+            if (!badge) return;
+            if (connected) {
+                badge.className = "text-[10px] bg-emerald-600/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span> 실시간 클라우드 DB 연결됨`;
+            } else {
+                badge.className = "text-[10px] bg-slate-700/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm";
+                badge.innerHTML = `<i class="fa-solid fa-hard-drive text-[9px]"></i> 오프라인 저장 모드`;
+            }
+        }
+
+        function updateSyncTime() {
+            const el = document.getElementById('syncTimeDisplay');
+            if (!el) return;
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+            el.innerText = `최근 업데이트 ${timeStr}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.render === 'function') window.render();
+            initCloudDatabase();
+        });
     </script>
 </body>
 </html>
