@@ -937,16 +937,17 @@
                     const docRef = doc(db, 'artifacts', appId, 'teams', `team_${tId}`);
                     
                     onSnapshot(docRef, (docSnap) => {
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            if (data && Array.isArray(data.members)) {
-                                window.teamData[tId] = data.members;
-                                if (typeof window.render === 'function') window.render();
-                                updateSyncTime();
-                            }
-                        } else {
-                            setDoc(docRef, { members: window.teamData[tId] || [], updatedAt: Date.now() });
-                        }
+if (docSnap.exists()) {
+    const data = docSnap.data();
+    if (data && Array.isArray(data.members)) {
+        window.teamData[tId] = data.members;
+        if (typeof window.render === 'function') window.render();
+        updateSyncTime();
+    }
+} else {
+    // ⭕ 문서가 없어도 함부로 setDoc으로 덮어쓰지 않고 로그만 남김
+    console.warn(`team_${tId} 문서를 찾을 수 없습니다. 자동 초기화를 방지합니다.`);
+}
                     }, (err) => {
                         console.error(`Team ${tId} 구독 에러:`, err);
                         updateDbBadge(false);
