@@ -169,14 +169,14 @@
     </div>
 
     <div id="toastMessage" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white text-xs px-4 py-2.5 rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
-        <i class="fa-solid fa-circle-check text-emerald-400"></i> <span id="toastText">저장 완료</span>
+        <i class="fa-solid fa-circle-check text-emerald-400" id="toastIcon"></i> <span id="toastText">저장 완료</span>
     </div>
 
     <!-- 1. 메인 렌더링 스크립트 -->
     <script>
         window.isAdminAuthenticated = false;
         window.isSuperAdmin = false;
-        window.isCloudConnected = false; // 🔥 DB 초록색(연결 상태) 플래그 추가
+        window.isCloudConnected = false; 
         window.currentWeekOffset = 0;
         window.activeTab = 'leaderboard'; 
         window.currentTeamId = 1; 
@@ -676,17 +676,16 @@
                         content = "O";
                     }
 
-                    // 🔥 [수정] DB 미연결 시 경고 안내 및 버튼 비활성화 시각화
                     let clickAction = "";
                     let disabledClass = "";
 
                     if (!window.isCloudConnected) {
-                        clickAction = `showToast('⚠️ DB 연결 중입니다. 상단 초록색 불을 확인 후 클릭해 주세요.')`;
+                        clickAction = `showToast('⚠️ DB 연결 중입니다. 상단 초록색 불을 확인 후 클릭해 주세요.', 'warn')`;
                         disabledClass = "opacity-50 cursor-not-allowed";
                     } else if (window.isAdminAuthenticated) {
                         clickAction = `toggleDay(${member.id}, ${idx})`;
                     } else {
-                        clickAction = `showToast('관리자(ADMIN) 로그인 후에만 입력할 수 있습니다.')`;
+                        clickAction = `showToast('관리자(ADMIN) 로그인 후에만 입력할 수 있습니다.', 'info')`;
                     }
 
                     daysHtml += `
@@ -703,15 +702,16 @@
             });
         }
 
-        // 🔥 [수정] 초록색(DB 연결) 상태가 아니면 차단하도록 보안 보완
+        // 🔥 [액션 시점 실시간 검증 보완] O/X 클릭 시 액션 순간 네트워크/DB 상태 직접 판단
         function toggleDay(memberId, dayIndex) {
             if (!window.isAdminAuthenticated) {
                 alert("관리자 권한이 필요합니다.");
                 return;
             }
 
-            if (!window.isCloudConnected) {
-                alert("⚠️ DB 연결이 안 된 오프라인 모드입니다.\n데이터 삭제 방지를 위해 초록색(DB 연결됨) 상태에서만 입력이 가능합니다.");
+            // 클릭하는 순간 실시간 DB 및 네트워크 재검증
+            if (typeof window.checkRealtimeConnection === 'function' && !window.checkRealtimeConnection()) {
+                alert("⚠️ 현재 실시간 DB 연결이 끊어져 있습니다.\n데이터 누락을 방지하기 위해 네트워크 재연결 후 시도해 주세요.");
                 return;
             }
 
@@ -723,6 +723,7 @@
             const currentVal = getMemberRecordForDate(member, dateObj);
             let newVal = (currentVal === 'O') ? '' : 'O';
 
+            // 로컬 임시 반영 후 렌더링
             setMemberRecordForDate(member, dateObj, newVal);
             render();
 
@@ -737,15 +738,15 @@
             }
         }
 
-        // 🔥 [수정] 오프라인 시 팀원 추가 금지
+        // 🔥 [액션 시점 실시간 검증 보완] 팀원 추가
         function addMember() {
             if (!window.isAdminAuthenticated) {
                 alert("관리자 권한이 필요합니다.");
                 return;
             }
 
-            if (!window.isCloudConnected) {
-                alert("⚠️ DB 연결이 안 된 상태에서는 팀원을 추가할 수 없습니다.");
+            if (typeof window.checkRealtimeConnection === 'function' && !window.checkRealtimeConnection()) {
+                alert("⚠️ 현재 DB 연결이 끊어진 상태입니다. 연결 확인 후 팀원을 추가해 주세요.");
                 return;
             }
 
@@ -772,15 +773,15 @@
             showToast(`${name} 팀원이 추가되었습니다!`);
         }
 
-        // 🔥 [수정] 오프라인 시 팀원 삭제 금지
+        // 🔥 [액션 시점 실시간 검증 보완] 팀원 삭제
         function deleteMember(id) {
             if (!window.isSuperAdmin) {
                 alert("⛔ 삭제 기능은 슈퍼 관리자(SUPER ADMIN) 권한이 필요합니다.");
                 return;
             }
 
-            if (!window.isCloudConnected) {
-                alert("⚠️ DB 연결이 안 된 상태에서는 팀원을 삭제할 수 없습니다.");
+            if (typeof window.checkRealtimeConnection === 'function' && !window.checkRealtimeConnection()) {
+                alert("⚠️ DB 연결이 안 된 오프라인 상태에서는 팀원을 삭제할 수 없습니다.");
                 return;
             }
 
@@ -816,7 +817,7 @@
                 return;
             }
 
-            if (!window.isCloudConnected) {
+            if (typeof window.checkRealtimeConnection === 'function' && !window.checkRealtimeConnection()) {
                 alert("⚠️ DB 연결 상태가 아닐 때는 복원을 수행할 수 없습니다.");
                 return;
             }
@@ -856,10 +857,19 @@
             reader.readAsText(file);
         }
 
-        function showToast(msg) {
+        function showToast(msg, type = 'success') {
             const toast = document.getElementById('toastMessage');
-            if (!toast) return;
-            document.getElementById('toastText').innerText = msg;
+            const toastText = document.getElementById('toastText');
+            const toastIcon = document.getElementById('toastIcon');
+            if (!toast || !toastText) return;
+
+            toastText.innerText = msg;
+            if (type === 'warn' || type === 'error') {
+                if (toastIcon) toastIcon.className = "fa-solid fa-triangle-exclamation text-amber-400";
+            } else {
+                if (toastIcon) toastIcon.className = "fa-solid fa-circle-check text-emerald-400";
+            }
+
             toast.classList.add('opacity-100');
             setTimeout(() => {
                 toast.classList.remove('opacity-100');
@@ -873,7 +883,7 @@
         }
     </script>
 
-    <!-- 2. Firebase Module JS (트랜잭션 + 오프라인 방지 연동) -->
+    <!-- 2. Firebase Module JS (액션 발생 시 실시간 DB 상태 재검수 및 예외 처리 완벽 반영) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -893,6 +903,19 @@
 
         let app, auth, db;
         let isCloudAvailable = false;
+
+        // 🔥 [새 기능] 클릭 액션 시점에 브라우저 인터넷 및 Firebase 상태를 즉각 확인하는 검증 함수
+        window.checkRealtimeConnection = function() {
+            if (!navigator.onLine) {
+                updateDbBadge(false);
+                return false;
+            }
+            if (!isCloudAvailable || !window.isCloudConnected || !db) {
+                updateDbBadge(false);
+                return false;
+            }
+            return true;
+        };
 
         async function initCloudDatabase() {
             try {
@@ -947,13 +970,13 @@
             if (typeof window.render === 'function') window.render();
         }
 
-        // 🔥 O/X 클릭 시 DB 원자적 트랜잭션 및 완벽 충돌 회피
+        // 🔥 O/X 클릭 시 DB 원자적 트랜잭션 + 트랜잭션 실패 시 자동 오프라인 전환 및 롤백
         window.saveSingleRecord = async function(teamId, memberId, dateKey, newValue) {
             try {
                 localStorage.setItem('dandelion_ox_standalone_v2', JSON.stringify(window.teamData));
             } catch (e) {}
 
-            if (isCloudAvailable && db && auth.currentUser) {
+            if (window.checkRealtimeConnection() && auth.currentUser) {
                 const docRef = doc(db, 'artifacts', appId, 'teams', `team_${teamId}`);
 
                 try {
@@ -987,18 +1010,23 @@
                     updateSyncTime();
                 } catch (e) {
                     console.error("트랜잭션 저장 실패:", e);
-                    showToast("❌ 서버 저장에 실패했습니다. (네트워크 확인 필요)");
+                    // 🔥 저장 실패 발생 시 즉시 DB 상태를 오프라인으로 바꾸고 경고
+                    updateDbBadge(false);
+                    showToast("❌ DB 저장 실패! 인터넷 연결 상태를 확인해주세요.", "error");
                 }
+            } else {
+                updateDbBadge(false);
+                showToast("⚠️ DB 미연결 상태입니다. 저장되지 않았습니다.", "warn");
             }
         };
 
-        // 🔥 팀원 구조 변동 시 원자적 트랜잭션 적용 (팀원 덮어쓰기 방지)
+        // 🔥 팀 구조 변경 저장
         window.saveTeamCloudData = async function(teamId) {
             try {
                 localStorage.setItem('dandelion_ox_standalone_v2', JSON.stringify(window.teamData));
             } catch (e) {}
 
-            if (isCloudAvailable && db && auth.currentUser) {
+            if (window.checkRealtimeConnection() && auth.currentUser) {
                 const docRef = doc(db, 'artifacts', appId, 'teams', `team_${teamId}`);
                 try {
                     await runTransaction(db, async (transaction) => {
@@ -1011,11 +1039,11 @@
                     updateSyncTime();
                 } catch (e) {
                     console.error("팀 구조 저장 실패:", e);
+                    updateDbBadge(false);
                 }
             }
         };
 
-        // 🔥 [수정] DB 연결 여부를 전역 변수(window.isCloudConnected)와 UI 배지에 동시 동기화
         function updateDbBadge(connected) {
             window.isCloudConnected = connected;
             const badge = document.getElementById('dbStatusBadge');
@@ -1037,6 +1065,10 @@
             const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
             el.innerText = `최근 동기화 ${timeStr}`;
         }
+
+        // 브라우저 자체의 네트워크 끊김/연결 감지 이벤트 추가
+        window.addEventListener('online', () => updateDbBadge(true));
+        window.addEventListener('offline', () => updateDbBadge(false));
 
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof window.render === 'function') window.render();
