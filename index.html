@@ -26,13 +26,8 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .custom-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .custom-scrollbar::-webkit-scrollbar { display: none; }
+        .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-100 h-[100dvh] flex justify-center items-center p-0 md:p-4 text-slate-800 overflow-hidden">
@@ -85,7 +80,6 @@
             
             <!-- VIEW 1: 랭킹 보드 화면 -->
             <section id="viewLeaderboard" class="space-y-4">
-                
                 <div id="topTeamCard" class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex items-center justify-between min-h-[100px]">
                     <div class="z-10 flex-1 min-w-0 pr-3">
                         <div class="flex items-center gap-1.5 flex-wrap mb-1">
@@ -99,9 +93,7 @@
                         <h2 id="topTeamName" class="text-xl sm:text-2xl font-black tracking-tight truncate">팀명 로딩중...</h2>
                         <p id="topTeamScore" class="text-xs text-blue-100 font-medium mt-0.5 truncate">점수 계산 중...</p>
                     </div>
-                    <div class="text-4xl text-blue-100/90 z-10 shrink-0">
-                        🥇
-                    </div>
+                    <div class="text-4xl text-blue-100/90 z-10 shrink-0">🥇</div>
                     <i class="fa-solid fa-crown absolute -right-3 -bottom-3 text-7xl text-white/15 pointer-events-none"></i>
                 </div>
 
@@ -114,9 +106,7 @@
                             <i class="fa-solid fa-bolt"></i> 실시간 동기화
                         </span>
                     </div>
-
-                    <div id="leaderboardList" class="space-y-2.5">
-                    </div>
+                    <div id="leaderboardList" class="space-y-2.5"></div>
                 </div>
 
                 <div class="bg-blue-50/80 border border-blue-200/80 rounded-2xl p-3.5 text-xs text-blue-900 space-y-1.5">
@@ -137,9 +127,7 @@
 
             <!-- VIEW 2: 팀별 O/X 입력 화면 -->
             <section id="viewTeamInput" class="space-y-4 hidden">
-                
-                <div class="grid grid-cols-6 gap-1.5 bg-slate-200/60 p-1.5 rounded-2xl text-xs font-bold" id="teamTabSelector">
-                </div>
+                <div class="grid grid-cols-6 gap-1.5 bg-slate-200/60 p-1.5 rounded-2xl text-xs font-bold" id="teamTabSelector"></div>
 
                 <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 flex items-center justify-between">
                     <div>
@@ -159,17 +147,14 @@
                 </div>
 
                 <div id="adminMemberAddContainer"></div>
-
-                <div id="dateHeaderGrid" class="grid grid-cols-7 text-center text-[11px] font-bold text-slate-500 bg-slate-100 p-2 rounded-xl border border-slate-200/60 shadow-inner">
-                </div>
+                <div id="dateHeaderGrid" class="grid grid-cols-7 text-center text-[11px] font-bold text-slate-500 bg-slate-100 p-2 rounded-xl border border-slate-200/60 shadow-inner"></div>
 
                 <div class="flex items-center justify-between px-1 text-[11px] text-slate-400">
                     <span><i class="fa-solid fa-cloud text-emerald-500 mr-1"></i>클라우드 DB 실시간 동기화 중</span>
                     <span id="syncTimeDisplay" class="text-slate-400 text-[10px]">최근 업데이트 방금 전</span>
                 </div>
 
-                <div id="memberList" class="space-y-3">
-                </div>
+                <div id="memberList" class="space-y-3"></div>
             </section>
         </main>
 
@@ -179,7 +164,6 @@
                     <span>🌼</span> MDR CREW
                 </span>
             </div>
-            <!-- 백업 복원용 숨김 파일 업로드 태그 -->
             <input type="file" id="restoreFileInput" accept=".json" class="hidden" onchange="handleRestoreFile(event)">
         </footer>
     </div>
@@ -268,14 +252,7 @@
                 const paddedDateStr = `${String(month).padStart(2, '0')}/${String(date).padStart(2, '0')}`;
                 const fullDateStr = `${d.getFullYear()}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
 
-                days.push({
-                    month,
-                    date,
-                    dayName: dayNames[i],
-                    shortDateStr,
-                    paddedDateStr,
-                    fullDateStr
-                });
+                days.push({ month, date, dayName: dayNames[i], shortDateStr, paddedDateStr, fullDateStr });
             }
             return days;
         }
@@ -423,8 +400,7 @@
 
         function setMemberRecordForDate(member, dateObj, val) {
             if (!member.records) member.records = {};
-            const key = dateObj.fullDateStr; 
-            member.records[key] = val;
+            member.records[dateObj.fullDateStr] = val;
         }
 
         function calculateTeamScores(teamId) {
@@ -717,6 +693,7 @@
             });
         }
 
+        // 🔥 [수정] O/X 클릭 시 DB 트랜잭션 저장을 정확하게 호출함
         function toggleDay(memberId, dayIndex) {
             if (!window.isAdminAuthenticated) {
                 alert("관리자 권한이 필요합니다.");
@@ -734,6 +711,7 @@
             setMemberRecordForDate(member, dateObj, newVal);
             render();
 
+            // 파이어베이스 DB 연결 함수 직접 실행
             if (typeof window.saveSingleRecord === 'function') {
                 window.saveSingleRecord(window.currentTeamId, member.id, dateObj.fullDateStr, newVal);
             }
@@ -741,11 +719,7 @@
             showToast(`${member.name} - ${dateObj.month}/${dateObj.date} ${newVal ? "'O' 입력" : "해제됨"}`);
 
             if (newVal === 'O' && typeof confetti === 'function') {
-                confetti({
-                    particleCount: 20,
-                    spread: 40,
-                    origin: { y: 0.8 }
-                });
+                confetti({ particleCount: 20, spread: 40, origin: { y: 0.8 } });
             }
         }
 
@@ -771,7 +745,11 @@
 
             if (input) input.value = '';
             render();
-            if (typeof window.saveCloudData === 'function') window.saveCloudData();
+            
+            // 🔥 [수정] 팀 구조 저장 함수명 정밀 바인딩
+            if (typeof window.saveTeamCloudData === 'function') {
+                window.saveTeamCloudData(window.currentTeamId);
+            }
             showToast(`${name} 팀원이 추가되었습니다!`);
         }
 
@@ -783,7 +761,11 @@
             if (confirm("정말로 이 팀원을 삭제하시겠습니까?")) {
                 window.teamData[window.currentTeamId] = window.teamData[window.currentTeamId].filter(m => m.id !== id);
                 render();
-                if (typeof window.saveCloudData === 'function') window.saveCloudData();
+                
+                // 🔥 [수정] 팀 구조 저장 함수명 정밀 바인딩
+                if (typeof window.saveTeamCloudData === 'function') {
+                    window.saveTeamCloudData(window.currentTeamId);
+                }
                 showToast('팀원이 삭제되었습니다.');
             }
         }
@@ -825,8 +807,10 @@
                             window.teamData = parsedData;
                             sanitizeTeamData();
                             render();
-                            if (typeof window.saveCloudData === 'function') {
-                                window.saveCloudData();
+                            for (let tId = 1; tId <= 6; tId++) {
+                                if (typeof window.saveTeamCloudData === 'function') {
+                                    window.saveTeamCloudData(tId);
+                                }
                             }
                             showToast("📂 백업 데이터가 성공적으로 복원되었습니다!");
                         }
@@ -858,13 +842,13 @@
         }
     </script>
 
-    <!-- 2. Firebase Module JS -->
+    <!-- 2. Firebase Module JS (완벽한 실시간 트랜잭션 동기화) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const appId = 'mindle-run-shared-db-v1';
+        const appId = 'mindle-run-shared-db-v2';
         
         const firebaseConfig = Object.freeze({
             apiKey: "AIzaSyBFTpzML6JYHQ0h-MPIBugMQ_0ZIlYWgrg",
@@ -878,10 +862,6 @@
 
         let app, auth, db;
         let isCloudAvailable = false;
-
-        function initDefaultTeamData() {
-            return { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
-        }
 
         async function initCloudDatabase() {
             try {
@@ -898,24 +878,25 @@
                 isCloudAvailable = true;
                 updateDbBadge(true);
 
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
-                
-                onSnapshot(docRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data && data.teamData) {
-                            window.teamData = data.teamData;
-                            if (typeof window.render === 'function') window.render();
-                            updateSyncTime();
+                // 팀 1~6 개별 실시간 구독
+                for (let tId = 1; tId <= 6; tId++) {
+                    const docRef = doc(db, 'artifacts', appId, 'teams', `team_${tId}`);
+                    
+                    onSnapshot(docRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            if (data && Array.isArray(data.members)) {
+                                window.teamData[tId] = data.members;
+                                if (typeof window.render === 'function') window.render();
+                                updateSyncTime();
+                            }
+                        } else {
+                            setDoc(docRef, { members: window.teamData[tId] || [], updatedAt: Date.now() });
                         }
-                    } else {
-                        setDoc(docRef, { teamData: window.teamData, updatedAt: Date.now() });
-                        if (typeof window.render === 'function') window.render();
-                    }
-                }, (error) => {
-                    console.error("Firestore 구독 에러:", error);
-                    loadLocalFallback();
-                });
+                    }, (err) => {
+                        console.error(`Team ${tId} 구독 에러:`, err);
+                    });
+                }
 
             } catch (err) {
                 console.error("Cloud DB 초기화 오류:", err);
@@ -926,78 +907,73 @@
         function loadLocalFallback() {
             updateDbBadge(false);
             try {
-                const saved = localStorage.getItem('dandelion_ox_standalone_v1');
+                const saved = localStorage.getItem('dandelion_ox_standalone_v2');
                 if (saved) {
                     window.teamData = JSON.parse(saved);
-                } else {
-                    window.teamData = initDefaultTeamData();
                 }
-            } catch (e) {
-                window.teamData = initDefaultTeamData();
-            }
+            } catch (e) {}
             if (typeof window.render === 'function') window.render();
         }
 
-        // 서버의 "최신 데이터"를 먼저 읽어온 뒤 O/X 항목 하나만 수정해 병합하는 함수 (유실 차단 핵심)
+        // 🔥 O/X 클릭 시 개별 셀 원자적 트랜잭션 업데이트
         window.saveSingleRecord = async function(teamId, memberId, dateKey, newValue) {
             try {
-                localStorage.setItem('dandelion_ox_standalone_v1', JSON.stringify(window.teamData));
+                localStorage.setItem('dandelion_ox_standalone_v2', JSON.stringify(window.teamData));
             } catch (e) {}
 
             if (isCloudAvailable && db && auth.currentUser) {
+                const docRef = doc(db, 'artifacts', appId, 'teams', `team_${teamId}`);
+
                 try {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
-                    
-                    // 1. 서버에서 가장 최신의 데이터 원본을 가져옴
-                    const docSnap = await getDoc(docRef);
-
-                    let latestTeamData = window.teamData;
-                    if (docSnap.exists() && docSnap.data().teamData) {
-                        latestTeamData = docSnap.data().teamData;
-                    }
-
-                    // 2. 최신 데이터 상에서 해당 유저의 특정 날짜만 교체
-                    if (latestTeamData[teamId]) {
-                        const member = latestTeamData[teamId].find(m => String(m.id) === String(memberId));
-                        if (member) {
-                            if (!member.records) member.records = {};
-                            member.records[dateKey] = newValue;
-
-                            // 3. 변경된 최신 데이터를 로컬 및 서버에 저장
-                            window.teamData = latestTeamData;
-
-                            await setDoc(docRef, {
-                                teamData: latestTeamData,
-                                updatedAt: Date.now(),
-                                updatedBy: auth.currentUser.uid
-                            }, { merge: true });
-
-                            updateSyncTime();
+                    await runTransaction(db, async (transaction) => {
+                        const sfDoc = await transaction.get(docRef);
+                        
+                        let currentMembers = window.teamData[teamId] || [];
+                        if (sfDoc.exists() && Array.isArray(sfDoc.data().members)) {
+                            currentMembers = sfDoc.data().members;
                         }
-                    }
+
+                        const updatedMembers = currentMembers.map(m => {
+                            if (String(m.id) === String(memberId)) {
+                                const newRecords = { ...(m.records || {}) };
+                                newRecords[dateKey] = newValue;
+                                return { ...m, records: newRecords };
+                            }
+                            return m;
+                        });
+
+                        window.teamData[teamId] = updatedMembers;
+                        transaction.set(docRef, {
+                            members: updatedMembers,
+                            updatedAt: Date.now(),
+                            updatedBy: auth.currentUser.uid
+                        }, { merge: true });
+                    });
+
+                    updateSyncTime();
                 } catch (e) {
-                    console.error("안전 저장 중 오류 발생:", e);
+                    console.error("트랜잭션 저장 실패:", e);
                 }
             }
         };
 
-        // 팀원 추가/삭제/복원 등 배열 전체 구조가 바뀔 때 실행되는 함수
-        window.saveCloudData = async function() {
+        // 🔥 팀원 추가/삭제/전체복원 시 실행되는 파이어베이스 함수
+        window.saveTeamCloudData = async function(teamId) {
             try {
-                localStorage.setItem('dandelion_ox_standalone_v1', JSON.stringify(window.teamData));
+                localStorage.setItem('dandelion_ox_standalone_v2', JSON.stringify(window.teamData));
             } catch (e) {}
 
             if (isCloudAvailable && db && auth.currentUser) {
                 try {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ox_state', 'main');
+                    const docRef = doc(db, 'artifacts', appId, 'teams', `team_${teamId}`);
                     await setDoc(docRef, {
-                        teamData: window.teamData,
+                        members: window.teamData[teamId] || [],
                         updatedAt: Date.now(),
                         updatedBy: auth.currentUser.uid
                     }, { merge: true });
                     updateSyncTime();
                 } catch (e) {
-                    console.error("Cloud save failed:", e);
+                    console.error("팀 구조 저장 실패:", e);
                 }
             }
         };
@@ -1007,7 +983,7 @@
             if (!badge) return;
             if (connected) {
                 badge.className = "text-[10px] bg-emerald-600/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span> 실시간 클라우드 DB 연결됨`;
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span> 데이터 삭제 방지 기원 DB 연결됨`;
             } else {
                 badge.className = "text-[10px] bg-slate-700/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm";
                 badge.innerHTML = `<i class="fa-solid fa-hard-drive text-[9px]"></i> 오프라인 저장 모드`;
@@ -1019,7 +995,7 @@
             if (!el) return;
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-            el.innerText = `최근 업데이트 ${timeStr}`;
+            el.innerText = `최근 동기화 ${timeStr}`;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
