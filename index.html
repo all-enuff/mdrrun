@@ -182,19 +182,23 @@
         window.currentTeamId = 1; 
         window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
+        // [개선] 구버전 백업 파일 복원 시에도 hasBonus 등 필수 객체 속성 누락 방어
         function sanitizeTeamData() {
             if (!window.teamData || typeof window.teamData !== 'object') {
                 window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
             }
             for (let i = 1; i <= 6; i++) {
                 let raw = window.teamData[i];
-                if (Array.isArray(raw)) {
-                    window.teamData[i] = raw;
-                } else if (raw && typeof raw === 'object') {
-                    window.teamData[i] = Object.values(raw);
-                } else {
-                    window.teamData[i] = [];
-                }
+                let list = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.values(raw) : []);
+                
+                window.teamData[i] = list.map(m => {
+                    if (!m || typeof m !== 'object') return m;
+                    return {
+                        ...m,
+                        records: m.records && typeof m.records === 'object' ? m.records : {},
+                        hasBonus: m.hasBonus !== undefined ? Boolean(m.hasBonus) : false
+                    };
+                });
             }
         }
 
@@ -998,7 +1002,8 @@
                                 updateSyncTime();
                             }
                         } else {
-                            console.warn(`team_${tId} 문서를 찾을 수 없습니다.`);
+                            // [개선] 문서를 못 찾았을 때 자동 빈 배열 저장 및 초기화로 인한 데이터 덮어쓰기 방지
+                            console.warn(`team_${tId} 문서를 찾을 수 없습니다. (덮어쓰기 방지)`);
                         }
                     }, (err) => {
                         console.error(`Team ${tId} 구독 에러:`, err);
