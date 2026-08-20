@@ -28,6 +28,21 @@
         }
         .custom-scrollbar::-webkit-scrollbar { display: none; }
         .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* 한세미 벙참가 기원 초강조 스타일 및 애니메이션 */
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), 0 0 20px rgba(245, 158, 11, 0.4);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 18px rgba(251, 191, 36, 0.9), 0 0 30px rgba(245, 158, 11, 0.7);
+                transform: scale(1.03);
+            }
+        }
+        .highlight-banner {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-slate-100 h-[100dvh] flex justify-center items-center p-0 md:p-4 text-slate-800 overflow-hidden">
@@ -81,17 +96,22 @@
             <!-- VIEW 1: 랭킹 보드 화면 -->
             <section id="viewLeaderboard" class="space-y-4">
                 <div id="topTeamCard" class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex items-center justify-between min-h-[100px]">
-                    <div class="z-10 flex-1 min-w-0 pr-3">
-                        <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                    <div class="z-10 flex-1 min-w-0 pr-3 space-y-1.5">
+                        <div class="flex items-center gap-1.5 flex-wrap">
                             <span id="topTeamStatusBadge" class="bg-amber-400 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full inline-block shadow-sm">
                                 ⚔️ 선두 경쟁 중
                             </span>
-                            <span id="targetDayBadge" class="bg-blue-700/80 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded-full inline-block">
-                                🔥챌린지 × 한세미 벙참가 기원 N일차🙏
+                        </div>
+                        
+                        <!-- ✨ 잘 보이도록 대폭 강조된 한세미 벙참가 기원 배너 ✨ -->
+                        <div>
+                            <span id="targetDayBadge" class="highlight-banner bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-slate-900 text-xs sm:text-sm font-black px-3 py-1 rounded-full inline-flex items-center gap-1 border-2 border-amber-200 shadow-md">
+                                🔥 챌린지 × 한세미 벙참가 기원 N일차 🙏
                             </span>
                         </div>
+
                         <h2 id="topTeamName" class="text-xl sm:text-2xl font-black tracking-tight truncate">팀명 로딩중...</h2>
-                        <p id="topTeamScore" class="text-xs text-blue-100 font-medium mt-0.5 truncate">점수 계산 중...</p>
+                        <p id="topTeamScore" class="text-xs text-blue-100 font-medium truncate">점수 계산 중...</p>
                     </div>
                     <div class="text-4xl text-blue-100/90 z-10 shrink-0">🥇</div>
                     <i class="fa-solid fa-crown absolute -right-3 -bottom-3 text-7xl text-white/15 pointer-events-none"></i>
@@ -182,7 +202,6 @@
         window.currentTeamId = 1; 
         window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
-        // [개선] 구버전 백업 파일 복원 시에도 hasBonus 등 필수 객체 속성 누락 방어
         function sanitizeTeamData() {
             if (!window.teamData || typeof window.teamData !== 'object') {
                 window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
@@ -383,7 +402,7 @@
 
             const targetBadge = document.getElementById('targetDayBadge');
             if (targetBadge) {
-                targetBadge.innerHTML = `🔥챌린지 × 한세미 벙참가 기원 ${currentDayCount}일차🙏`;
+                targetBadge.innerHTML = `🔥 챌린지 × 한세미 벙참가 기원 ${currentDayCount}일차 🙏`;
             }
 
             const rankings = getAllTeamRankings();
@@ -429,7 +448,6 @@
                 });
                 currentWeekRawCount += count;
                 
-                // 기본 주간 점수 최대 5점 제한 + 가산점 1점 별도 합산
                 let hasBonus = m.hasBonus ? 1 : 0;
                 let cappedCount = Math.min(5, count) + hasBonus;
                 memberWeekScores[m.id] = cappedCount;
@@ -655,7 +673,6 @@
                     if (getMemberRecordForDate(member, d) === 'O') memberOCount++;
                 });
 
-                // 주간 최대 인정 5점 제한 적용
                 let cappedBaseScore = Math.min(5, memberOCount);
 
                 const card = document.createElement('div');
@@ -683,7 +700,6 @@
                     `;
                 }
 
-                // 0/5점 또는 가산점 있을시 0(+1)/5점 형태로 표기
                 let scoreText = member.hasBonus ? `${cappedBaseScore}(+1)/5점` : `${cappedBaseScore}/5점`;
 
                 let headerHtml = `
@@ -737,7 +753,6 @@
             });
         }
 
-        // 가산점 토글 온오프 (최대 1점)
         function toggleBonusPoint(memberId) {
             if (!window.isAdminAuthenticated) {
                 alert("관리자 권한이 필요합니다.");
@@ -762,7 +777,6 @@
             showToast(`${member.name} 팀원 가산점 ${member.hasBonus ? '적용 (+1점)' : '해제 (0점)'}`);
         }
 
-        // O/X 클릭 처리
         function toggleDay(memberId, dayIndex) {
             if (!window.isAdminAuthenticated) {
                 alert("관리자 권한이 필요합니다.");
@@ -796,7 +810,6 @@
             }
         }
 
-        // 팀원 추가
         function addMember() {
             if (!window.isAdminAuthenticated) {
                 alert("관리자 권한이 필요합니다.");
@@ -832,7 +845,6 @@
             showToast(`${name} 팀원이 추가되었습니다!`);
         }
 
-        // 팀원 삭제
         function deleteMember(id) {
             if (!window.isSuperAdmin) {
                 alert("⛔ 삭제 기능은 슈퍼 관리자(SUPER ADMIN) 권한이 필요합니다.");
@@ -1002,7 +1014,6 @@
                                 updateSyncTime();
                             }
                         } else {
-                            // [개선] 문서를 못 찾았을 때 자동 빈 배열 저장 및 초기화로 인한 데이터 덮어쓰기 방지
                             console.warn(`team_${tId} 문서를 찾을 수 없습니다. (덮어쓰기 방지)`);
                         }
                     }, (err) => {
