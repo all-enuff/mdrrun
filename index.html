@@ -28,21 +28,6 @@
         }
         .custom-scrollbar::-webkit-scrollbar { display: none; }
         .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* 한세미 벙참가 기원 초강조 스타일 및 애니메이션 */
-        @keyframes pulse-glow {
-            0%, 100% {
-                box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), 0 0 20px rgba(245, 158, 11, 0.4);
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 0 0 18px rgba(251, 191, 36, 0.9), 0 0 30px rgba(245, 158, 11, 0.7);
-                transform: scale(1.03);
-            }
-        }
-        .highlight-banner {
-            animation: pulse-glow 2s infinite ease-in-out;
-        }
     </style>
 </head>
 <body class="bg-slate-100 h-[100dvh] flex justify-center items-center p-0 md:p-4 text-slate-800 overflow-hidden">
@@ -103,10 +88,10 @@
                             </span>
                         </div>
                         
-                        <!-- ✨ 잘 보이도록 대폭 강조된 한세미 벙참가 기원 배너 ✨ -->
+                        <!-- ✨ D-Day 배너 ✨ -->
                         <div>
-                            <span id="targetDayBadge" class="highlight-banner bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-slate-900 text-xs sm:text-sm font-black px-3 py-1 rounded-full inline-flex items-center gap-1 border-2 border-amber-200 shadow-md">
-                                🔥 챌린지 × 한세미 벙참가 기원 N일차 🙏
+                            <span id="targetDayBadge" class="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-slate-900 text-xs sm:text-sm font-black px-3 py-1 rounded-full inline-flex items-center gap-1 border border-amber-200 shadow-sm">
+                                🚩 챌린지 종료까지 단 ?일! 파이팅 🏃
                             </span>
                         </div>
 
@@ -394,15 +379,21 @@
                 }
             }
 
-            const startDate = new Date(2026, 6, 27); 
+            // 8월 28일 기준 D-Day 계산
+            const endDate = new Date(2026, 7, 28); // 2026년 8월 28일
             const today = new Date();
-            const diffTime = new Date(today.getFullYear(), today.getMonth(), today.getDate()) - new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            const currentDayCount = diffDays > 0 ? diffDays : 0;
+            const diffTime = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()) - new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
             const targetBadge = document.getElementById('targetDayBadge');
             if (targetBadge) {
-                targetBadge.innerHTML = `🔥 챌린지 × 한세미 벙참가 기원 ${currentDayCount}일차 🙏`;
+                if (diffDays > 0) {
+                    targetBadge.innerHTML = `🚩 챌린지 종료까지 단 ${diffDays}일! 파이팅 🏃`;
+                } else if (diffDays === 0) {
+                    targetBadge.innerHTML = `🏁 챌린지 마지막 날(D-Day)! 끝까지 파이팅 🏃`;
+                } else {
+                    targetBadge.innerHTML = `🏆 챌린지가 모두 종료되었습니다! 고생하셨습니다 👏`;
+                }
             }
 
             const rankings = getAllTeamRankings();
