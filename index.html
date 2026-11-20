@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>민들레런 챌린지</title>
+    <title>민들레런 챌린지 ❄️</title>
     <!-- 모바일 PWA 및 웹앱 홈화면 설정 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="민들레런">
-    <meta name="theme-color" content="#2563eb">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌼</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌼</text></svg>">
+    <meta name="theme-color" content="#0c4a6e">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,102 +25,159 @@
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
+            -webkit-user-select: none;
+        }
+        input, textarea {
+            user-select: text;
+            -webkit-user-select: text;
         }
         .custom-scrollbar::-webkit-scrollbar { display: none; }
         .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 겨울 얼음 서리(Frost) & 글래스 질감 유틸리티 */
+        .frost-card {
+            background: rgba(255, 255, 255, 0.84);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(186, 230, 253, 0.85);
+            box-shadow: 0 4px 20px -2px rgba(14, 116, 144, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        /* 헤더 및 카드 상단 소복이 쌓인 눈(Snow Cap) 효과 */
+        .snow-cap-top {
+            position: relative;
+        }
+        .snow-cap-top::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(224,242,254,0.65) 65%, rgba(255,255,255,0) 100%);
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        /* 은은하게 반짝이는 얼음 결정 애니메이션 */
+        @keyframes shimmerFrost {
+            0%, 100% { opacity: 0.7; transform: scale(1) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1.08) rotate(12deg); }
+        }
+        .animate-frost-spin {
+            animation: shimmerFrost 5s ease-in-out infinite;
+        }
     </style>
 </head>
-<body class="bg-slate-100 h-[100dvh] flex justify-center items-center p-0 md:p-4 text-slate-800 overflow-hidden">
+<body class="bg-gradient-to-b from-slate-950 via-sky-950 to-slate-900 h-[100dvh] flex justify-center items-center p-0 md:p-4 text-slate-800 overflow-hidden relative">
 
-    <div class="w-full max-w-md h-[100dvh] md:h-[844px] md:max-h-[850px] bg-white md:rounded-[38px] shadow-2xl flex flex-col overflow-hidden relative border-slate-200 md:border-[8px]">
+    <!-- 전체 배경 눈 내리는 Canvas 레이어 (클릭 방해 없음) -->
+    <canvas id="bgSnowCanvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+    <!-- 메인 앱 컨테이너 (프로스티드 아이스 글래스 프레임) -->
+    <div class="w-full max-w-md h-[100dvh] md:h-[844px] md:max-h-[850px] bg-gradient-to-b from-sky-50/95 via-slate-50/95 to-cyan-50/95 backdrop-blur-md md:rounded-[38px] shadow-[0_0_50px_rgba(56,189,248,0.22)] flex flex-col overflow-hidden relative border-sky-200/70 md:border-[8px] z-10">
         
-        <!-- 상단 헤더 -->
-        <header class="bg-blue-600 text-white p-5 pt-6 rounded-b-3xl shadow-lg relative shrink-0">
-            <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-2xl">🌼</span>
+        <!-- 앱 컨테이너 내부 은은한 눈송이 Canvas 레이어 -->
+        <canvas id="appSnowCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-30"></canvas>
+
+        <!-- 상단 헤더 (깊은 빙하색 그라데이션 + 서리 테두리) -->
+        <header class="bg-gradient-to-br from-slate-900 via-sky-900 to-cyan-800 text-white p-5 pt-6 rounded-b-3xl shadow-lg shadow-sky-950/30 relative shrink-0 border-b border-cyan-300/30 overflow-hidden z-20">
+            <!-- 헤더 배경 얼음 결정 장식 -->
+            <i class="fa-regular fa-snowflake absolute -top-3 -left-3 text-6xl text-cyan-200/10 pointer-events-none"></i>
+            <i class="fa-regular fa-snowflake absolute top-8 right-16 text-4xl text-sky-200/10 pointer-events-none animate-frost-spin"></i>
+
+            <div class="flex justify-between items-center mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-cyan-400/15 border border-cyan-300/30 flex items-center justify-center shadow-inner backdrop-blur-sm">
+                        <span class="text-2xl drop-shadow-[0_0_8px_rgba(186,230,253,0.8)]">❄️</span>
+                    </div>
                     <div>
-                        <h1 class="text-xl font-black tracking-tight">민들레런</h1>
-                        <div id="dbStatusBadge" class="text-[10px] bg-slate-700/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm">
-                            <i class="fa-solid fa-hard-drive text-[9px]"></i> 오프라인 저장 모드
+                        <div class="flex items-center gap-1.5">
+                            <h1 class="text-xl font-black tracking-tight text-white drop-shadow-sm">민들레런</h1>
+                            <span class="text-[10px] font-extrabold tracking-wider uppercase px-1.5 py-0.5 rounded bg-cyan-400/20 text-cyan-200 border border-cyan-300/30">WINTER</span>
                         </div>
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <button onclick="requestAdminAuth()" class="text-xs bg-blue-800 hover:bg-blue-900 text-white font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition border border-blue-400/40 shadow-sm active:scale-95">
-                        <i class="fa-solid fa-lock" id="adminLockIcon"></i> <span id="adminBtnText">ADMIN</span>
+                    <button type="button" onclick="requestAdminAuth()" class="text-xs bg-slate-900/60 hover:bg-slate-800/80 text-cyan-100 font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition border border-cyan-300/30 shadow-sm backdrop-blur-sm active:scale-95 cursor-pointer">
+                        <i class="fa-solid fa-lock text-cyan-300" id="adminLockIcon"></i> <span id="adminBtnText">ADMIN</span>
                     </button>
                 </div>
             </div>
 
-            <!-- 주차 이동 네비게이션 -->
-            <div class="flex items-center justify-between bg-blue-700/60 rounded-2xl p-2.5 backdrop-blur-sm mt-1">
-                <button onclick="changeWeek(-1)" class="w-8 h-8 rounded-xl bg-blue-600/80 hover:bg-blue-500 flex items-center justify-center text-white transition active:scale-95">
+            <!-- 주차 이동 네비게이션 (서리 낀 반투명 바) -->
+            <div class="flex items-center justify-between bg-sky-950/50 border border-cyan-300/20 rounded-2xl p-2.5 backdrop-blur-md mt-1 relative z-10 shadow-inner">
+                <button type="button" onclick="changeWeek(-1)" class="w-8 h-8 rounded-xl bg-cyan-500/20 hover:bg-cyan-400/30 border border-cyan-300/25 flex items-center justify-center text-cyan-100 transition active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-chevron-left text-xs"></i>
                 </button>
-                <span id="currentWeekDisplay" class="font-semibold text-sm tracking-wide">주차 계산 중...</span>
-                <button onclick="changeWeek(1)" class="w-8 h-8 rounded-xl bg-blue-600/80 hover:bg-blue-500 flex items-center justify-center text-white transition active:scale-95">
+                <span id="currentWeekDisplay" class="font-semibold text-sm tracking-wide text-sky-50">주차 계산 중...</span>
+                <button type="button" onclick="changeWeek(1)" class="w-8 h-8 rounded-xl bg-cyan-500/20 hover:bg-cyan-400/30 border border-cyan-300/25 flex items-center justify-center text-cyan-100 transition active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-chevron-right text-xs"></i>
                 </button>
             </div>
 
             <!-- 탭 메뉴 -->
-            <div class="flex bg-blue-800/40 p-1 rounded-xl mt-3 text-xs font-semibold">
-                <button id="tabLeaderboardBtn" onclick="switchTab('leaderboard')" class="flex-1 py-2 rounded-lg text-center transition bg-white text-blue-700 shadow-sm font-bold">
-                    <i class="fa-solid fa-ranking-star mr-1"></i> 랭킹보드
+            <div class="flex bg-slate-950/40 border border-cyan-300/20 p-1 rounded-xl mt-3 text-xs font-semibold relative z-10 backdrop-blur-sm">
+                <button type="button" id="tabLeaderboardBtn" onclick="switchTab('leaderboard')" class="flex-1 py-2 rounded-lg text-center transition bg-gradient-to-r from-white to-sky-50 text-sky-900 shadow-sm font-bold cursor-pointer">
+                    <i class="fa-solid fa-ranking-star mr-1 text-cyan-600"></i> 랭킹보드
                 </button>
-                <button id="tabTeamBtn" onclick="switchTab('team')" class="flex-1 py-2 rounded-lg text-center transition text-blue-100 hover:text-white">
+                <button type="button" id="tabTeamBtn" onclick="switchTab('team')" class="flex-1 py-2 rounded-lg text-center transition text-sky-100/80 hover:text-white cursor-pointer">
                     <i class="fa-solid fa-users mr-1"></i> 운동기록
                 </button>
             </div>
         </header>
 
         <!-- 메인 콘텐츠 영역 -->
-        <main class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+        <main class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 relative z-10">
             
             <!-- VIEW 1: 랭킹 보드 화면 -->
             <section id="viewLeaderboard" class="space-y-4">
-                <div id="topTeamCard" class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden flex items-center justify-between min-h-[100px]">
+                <!-- 1위 팀 배너 카드 (소복이 쌓인 눈 캡 & 빙하 그라데이션) -->
+                <div id="topTeamCard" class="snow-cap-top bg-gradient-to-br from-sky-800 via-cyan-800 to-slate-900 rounded-2xl p-4 pt-5 text-white shadow-lg shadow-cyan-950/25 border border-cyan-300/40 relative overflow-hidden flex items-center justify-between min-h-[108px]">
                     <div class="z-10 flex-1 min-w-0 pr-3 space-y-1.5">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span id="topTeamStatusBadge" class="bg-amber-400 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full inline-block shadow-sm">
-                                ⚔️ 선두 경쟁 중
+                            <span id="topTeamStatusBadge" class="bg-cyan-200 text-sky-950 text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block shadow-sm">
+                                ❄️ 선두 경쟁 중
                             </span>
                         </div>
                         
-                        <!-- ✨ D-Day 배너 ✨ -->
+                        <!-- ✨ 겨울 D-Day 배너 ✨ -->
                         <div>
-                            <span id="targetDayBadge" class="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-slate-900 text-xs sm:text-sm font-black px-3 py-1 rounded-full inline-flex items-center gap-1 border border-amber-200 shadow-sm">
-                                🚩 챌린지 종료까지 단 ?일! 파이팅 🏃
+                            <span id="targetDayBadge" class="bg-gradient-to-r from-white via-sky-100 to-cyan-100 text-sky-950 text-xs sm:text-sm font-black px-3 py-1 rounded-full inline-flex items-center gap-1 border border-white shadow-sm">
+                                ❄️ 챌린지 종료까지 단 ?일! 파이팅 🏃
                             </span>
                         </div>
 
-                        <h2 id="topTeamName" class="text-xl sm:text-2xl font-black tracking-tight truncate">팀명 로딩중...</h2>
-                        <p id="topTeamScore" class="text-xs text-blue-100 font-medium truncate">점수 계산 중...</p>
+                        <h2 id="topTeamName" class="text-xl sm:text-2xl font-black tracking-tight truncate text-white drop-shadow-sm">팀명 로딩중...</h2>
+                        <p id="topTeamScore" class="text-xs text-cyan-100 font-medium truncate">점수 계산 중...</p>
                     </div>
-                    <div class="text-4xl text-blue-100/90 z-10 shrink-0">🥇</div>
-                    <i class="fa-solid fa-crown absolute -right-3 -bottom-3 text-7xl text-white/15 pointer-events-none"></i>
+                    <div class="text-4xl z-10 shrink-0 drop-shadow-[0_2px_10px_rgba(186,230,253,0.6)]">🥇</div>
+                    <i class="fa-regular fa-snowflake absolute -right-4 -bottom-4 text-8xl text-cyan-200/15 pointer-events-none animate-frost-spin"></i>
+                    <i class="fa-solid fa-icicles absolute top-0 right-12 text-3xl text-white/25 pointer-events-none"></i>
                 </div>
 
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-                        <h3 class="font-bold text-sm text-slate-700 flex items-center gap-1.5">
-                            <i class="fa-solid fa-list-ol text-blue-600"></i> 민들레런 팀별 실시간 랭킹
+                <!-- 실시간 랭킹 리스트 카드 -->
+                <div class="frost-card rounded-2xl p-4 space-y-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-sky-200/70">
+                        <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-snowflake text-cyan-600"></i> 민들레런 팀별 실시간 랭킹
                         </h3>
-                        <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-bolt"></i> 실시간 동기화
+                        <span class="text-[11px] text-cyan-700 bg-cyan-100/80 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 border border-cyan-200/80">
+                            <i class="fa-solid fa-bolt text-cyan-500"></i> 실시간 동기화
                         </span>
                     </div>
                     <div id="leaderboardList" class="space-y-2.5"></div>
                 </div>
 
-                <div class="bg-blue-50/80 border border-blue-200/80 rounded-2xl p-3.5 text-xs text-blue-900 space-y-1.5">
-                    <p class="font-bold flex items-center gap-1 text-blue-800">
-                        <i class="fa-solid fa-circle-info text-blue-600"></i> 민들레런 챌린지 규칙
+                <!-- 겨울 챌린지 규칙 안내 카드 -->
+                <div class="bg-gradient-to-br from-sky-100/80 to-cyan-50/90 backdrop-blur-sm border border-sky-200/90 rounded-2xl p-3.5 text-xs text-sky-950 space-y-1.5 shadow-sm">
+                    <p class="font-bold flex items-center gap-1.5 text-sky-900">
+                        <i class="fa-solid fa-circle-info text-cyan-600"></i> 민들레런 챌린지 규칙
                     </p>
-                    <ul class="list-disc list-inside text-blue-900/90 space-y-1 pl-1 text-[11px]">
+                    <ul class="list-disc list-inside text-sky-900/90 space-y-1 pl-1 text-[11px]">
                         <li><strong>러닝 인정 기준:</strong> 3km 이상, 평균 페이스 8:00/km 이내(등산도 1회 인정)입니다.</li>
-                        <li><strong>정기 모임 보너스:</strong> 정기 러닝·등산 참여 시 당일과 다음날까지 총 2회 인정됩니다. (챌린지 모임 2회 참석 시 가산점 1점 부여)</li>
+                        <li><strong>벙 가산점 기준:</strong> 벙 2회 참석 시 가산점 <strong>+1점</strong>을 부여합니다. (최대 +5점 / ex. 벙 6회 참석 +3점)</li>
+                        <li><strong>가산점 상한:</strong> 가산점은 <strong>최대 5점</strong>까지만 인정됩니다.</li>
                         <li><strong>주간 인정 제한:</strong> 1인당 주 최대 <strong>5회(5점)</strong>까지만 인정되며, 가산점은 별도 합산됩니다.</li>
                         <li><strong>제외 대상:</strong> 쇼핑몰·마트 등 실내 보행 공간 러닝은 인정되지 않습니다.</li>
                         <li><strong>러닝머신 기준:</strong> 평균 페이스 <strong>8:00/km 이내</strong> 기록만 인정됩니다.</li>
@@ -132,30 +189,30 @@
 
             <!-- VIEW 2: 팀별 O/X 입력 화면 -->
             <section id="viewTeamInput" class="space-y-4 hidden">
-                <div class="grid grid-cols-6 gap-1.5 bg-slate-200/60 p-1.5 rounded-2xl text-xs font-bold" id="teamTabSelector"></div>
+                <div class="grid grid-cols-6 gap-1.5 bg-sky-200/50 border border-sky-200/80 p-1.5 rounded-2xl text-xs font-bold backdrop-blur-sm" id="teamTabSelector"></div>
 
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                <div class="frost-card rounded-2xl p-4 flex items-center justify-between">
                     <div>
                         <div class="flex items-center gap-2">
                             <span id="selectedTeamTitle" class="text-lg font-extrabold text-slate-800">1팀</span>
-                            <span id="selectedTeamRankBadge" class="bg-blue-100 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                            <span id="selectedTeamRankBadge" class="bg-cyan-100 text-sky-800 border border-cyan-200 text-[11px] font-bold px-2 py-0.5 rounded-full">
                                 랭킹 1위
                             </span>
                         </div>
-                        <p class="text-xs text-slate-400 mt-1">이 팀의 팀원별 달성 기록을 관리합니다.</p>
+                        <p class="text-xs text-slate-500 mt-1">이 팀의 팀원별 달성 기록을 관리합니다.</p>
                     </div>
                     <div class="text-right flex flex-col items-end">
-                        <span id="teamScoreDisplay" class="text-3xl font-black text-blue-600 leading-none">0</span>
-                        <span id="teamMaxScoreLabel" class="text-slate-400 font-bold text-xs mt-1">인당 최대 5점 (가산점 별도)</span>
-                        <span id="teamRawCountDisplay" class="text-[11px] text-blue-600 font-bold block mt-1">이번 주: 0점 | 누적: 0점</span>
+                        <span id="teamScoreDisplay" class="text-3xl font-black text-sky-700 leading-none">0</span>
+                        <span id="teamMaxScoreLabel" class="text-slate-400 font-bold text-xs mt-1">인당 주 최대 5점 (가산점 최대 +5점 별도 합산)</span>
+                        <span id="teamRawCountDisplay" class="text-[11px] text-cyan-700 font-bold block mt-1">이번 주: 0점 | 누적: 0점</span>
                     </div>
                 </div>
 
                 <div id="adminMemberAddContainer"></div>
-                <div id="dateHeaderGrid" class="grid grid-cols-7 text-center text-[11px] font-bold text-slate-500 bg-slate-100 p-2 rounded-xl border border-slate-200/60 shadow-inner"></div>
+                <div id="dateHeaderGrid" class="grid grid-cols-7 text-center text-[11px] font-bold text-slate-600 bg-white/80 backdrop-blur-sm p-2 rounded-xl border border-sky-200/80 shadow-inner"></div>
 
-                <div class="flex items-center justify-between px-1 text-[11px] text-slate-400">
-                    <span><i class="fa-solid fa-cloud text-emerald-500 mr-1"></i>클라우드 DB 실시간 동기화 중</span>
+                <div class="flex items-center justify-between px-1 text-[11px] text-slate-500">
+                    <span><i class="fa-solid fa-cloud text-cyan-600 mr-1"></i>클라우드 DB 실시간 동기화 중</span>
                     <span id="syncTimeDisplay" class="text-slate-400 text-[10px]">최근 업데이트 방금 전</span>
                 </div>
 
@@ -163,21 +220,215 @@
             </section>
         </main>
 
-        <footer class="bg-slate-50 border-t border-slate-200/80 p-4 text-center shrink-0">
+        <footer class="bg-white/85 backdrop-blur-md border-t border-sky-200/80 p-4 text-center shrink-0 relative z-20">
             <div id="footerContent" class="flex justify-center items-center gap-3 text-xs text-slate-500">
-                <span class="text-emerald-700 font-bold flex items-center gap-1.5">
-                    <span>🌼</span> MDR CREW
+                <span class="text-sky-800 font-bold flex items-center gap-1.5">
+                    <span>❄️</span> MDR CREW WINTER
                 </span>
             </div>
             <input type="file" id="restoreFileInput" accept=".json" class="hidden" onchange="handleRestoreFile(event)">
         </footer>
+
+        <!-- 인앱 관리자 비밀번호 모달 (샌드박스 prompt 대체) -->
+        <div id="adminAuthModal" class="hidden absolute inset-0 bg-slate-950/70 backdrop-blur-sm z-40 flex items-center justify-center p-5">
+            <div class="w-full max-w-xs bg-gradient-to-b from-slate-900 via-sky-950 to-slate-900 border border-cyan-300/40 rounded-3xl p-5 text-white shadow-2xl space-y-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-cyan-400/15 border border-cyan-300/30 flex items-center justify-center text-cyan-300">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black tracking-tight">관리자 인증</h3>
+                        <p class="text-[11px] text-cyan-200/80">비밀번호를 입력하세요.</p>
+                    </div>
+                </div>
+                <div>
+                    <input type="password" id="adminPasswordInput" inputmode="numeric" placeholder="비밀번호 입력"
+                        class="w-full px-3.5 py-2.5 text-sm bg-slate-950/70 border border-cyan-300/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-cyan-300 transition">
+                    <p id="adminAuthError" class="hidden text-[11px] text-rose-300 mt-1.5 font-medium">비밀번호가 올바르지 않습니다.</p>
+                </div>
+                <div class="flex gap-2 pt-1">
+                    <button type="button" onclick="closeAdminAuthModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-bold transition cursor-pointer">
+                        취소
+                    </button>
+                    <button type="button" onclick="submitAdminAuth()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 text-xs font-black transition shadow-md cursor-pointer">
+                        확인
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 인앱 확인 모달 (샌드박스 confirm 대체) -->
+        <div id="confirmModal" class="hidden absolute inset-0 bg-slate-950/70 backdrop-blur-sm z-40 flex items-center justify-center p-5">
+            <div class="w-full max-w-xs bg-gradient-to-b from-slate-900 via-sky-950 to-slate-900 border border-cyan-300/40 rounded-3xl p-5 text-white shadow-2xl space-y-4">
+                <div class="flex items-start gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-cyan-400/15 border border-cyan-300/30 flex items-center justify-center text-cyan-300 shrink-0">
+                        <i class="fa-solid fa-snowflake"></i>
+                    </div>
+                    <div>
+                        <h3 id="confirmModalTitle" class="text-sm font-black tracking-tight">확인</h3>
+                        <p id="confirmModalMessage" class="text-xs text-sky-100/90 mt-1 leading-relaxed">진행하시겠습니까?</p>
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-1">
+                    <button type="button" id="confirmCancelBtn" class="flex-1 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-bold transition cursor-pointer">
+                        취소
+                    </button>
+                    <button type="button" id="confirmOkBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 text-xs font-black transition shadow-md cursor-pointer">
+                        확인
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="toastMessage" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white text-xs px-4 py-2.5 rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
-        <i class="fa-solid fa-circle-check text-emerald-400" id="toastIcon"></i> <span id="toastText">저장 완료</span>
+    <div id="toastMessage" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-cyan-400/30 text-sky-50 text-xs px-4 py-2.5 rounded-full shadow-lg shadow-cyan-950/40 transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2 backdrop-blur-md">
+        <i class="fa-solid fa-snowflake text-cyan-300" id="toastIcon"></i> <span id="toastText">저장 완료</span>
     </div>
 
-    <!-- 1. 메인 렌더링 스크립트 -->
+    <!-- 보안 보호 스크립트 (우클릭 및 F12/개발자도구 단축키 차단 - 클릭/입력 간섭 없음) -->
+    <script>
+        (function initAntiInspectionProtection() {
+            // 1. 마우스 오른쪽 클릭 차단
+            document.addEventListener('contextmenu', function (e) {
+                e.preventDefault();
+            });
+
+            // 2. F12, 개발자 도구, 소스 보기, 페이지 저장 단축키만 정교하게 차단
+            document.addEventListener('keydown', function (e) {
+                const key = (e.key || '').toUpperCase();
+                const keyCode = e.keyCode || e.which;
+
+                // F12 차단
+                if (keyCode === 123 || key === 'F12') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                // Ctrl + Shift + I / J / C (Windows/Linux) 또는 Cmd + Option + I / J / C (macOS)
+                if ((e.ctrlKey && e.shiftKey && (key === 'I' || key === 'J' || key === 'C' || keyCode === 73 || keyCode === 74 || keyCode === 67)) ||
+                    (e.metaKey && e.altKey && (key === 'I' || key === 'J' || key === 'C' || keyCode === 73 || keyCode === 74 || keyCode === 67))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                // Ctrl + U / Cmd + Option + U (페이지 소스 보기)
+                if ((e.ctrlKey && (key === 'U' || keyCode === 85)) ||
+                    (e.metaKey && e.altKey && (key === 'U' || keyCode === 85))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                // Ctrl + S / Cmd + S (페이지 저장)
+                if ((e.ctrlKey || e.metaKey) && (key === 'S' || keyCode === 83)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            });
+        })();
+    </script>
+
+    <!-- 0. 눈 내리는 애니메이션 스크립트 (배경 & 앱 내부 파티클) -->
+    <script>
+        (function initWinterSnowfall() {
+            function createSnowSystem(canvasId, options) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                let width = 0;
+                let height = 0;
+                let flakes = [];
+
+                function resize() {
+                    const rect = canvas.parentElement ? canvas.parentElement.getBoundingClientRect() : { width: window.innerWidth, height: window.innerHeight };
+                    width = canvas.width = rect.width || window.innerWidth;
+                    height = canvas.height = rect.height || window.innerHeight;
+                }
+
+                function initFlakes() {
+                    flakes = [];
+                    for (let i = 0; i < options.count; i++) {
+                        flakes.push({
+                            x: Math.random() * width,
+                            y: Math.random() * height,
+                            r: Math.random() * (options.maxR - options.minR) + options.minR,
+                            speedY: Math.random() * (options.maxSpeed - options.minSpeed) + options.minSpeed,
+                            drift: Math.random() * 0.6 - 0.3,
+                            swayOffset: Math.random() * Math.PI * 2,
+                            opacity: Math.random() * (options.maxOpacity - options.minOpacity) + options.minOpacity
+                        });
+                    }
+                }
+
+                function updateAndDraw() {
+                    ctx.clearRect(0, 0, width, height);
+                    for (let i = 0; i < flakes.length; i++) {
+                        const f = flakes[i];
+                        f.y += f.speedY;
+                        f.swayOffset += 0.015;
+                        f.x += Math.sin(f.swayOffset) * 0.35 + f.drift;
+
+                        if (f.y > height + 5) {
+                            f.y = -5;
+                            f.x = Math.random() * width;
+                        }
+                        if (f.x > width + 5) f.x = -5;
+                        if (f.x < -5) f.x = width + 5;
+
+                        ctx.beginPath();
+                        const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+                        grad.addColorStop(0, `rgba(255, 255, 255, ${f.opacity})`);
+                        grad.addColorStop(0.6, `rgba(224, 242, 254, ${f.opacity * 0.8})`);
+                        grad.addColorStop(1, 'rgba(186, 230, 253, 0)');
+                        ctx.fillStyle = grad;
+                        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    requestAnimationFrame(updateAndDraw);
+                }
+
+                resize();
+                initFlakes();
+                window.addEventListener('resize', () => {
+                    resize();
+                    initFlakes();
+                });
+                requestAnimationFrame(updateAndDraw);
+            }
+
+            function startSnow() {
+                createSnowSystem('bgSnowCanvas', {
+                    count: 85,
+                    minR: 1.5,
+                    maxR: 4.2,
+                    minSpeed: 0.4,
+                    maxSpeed: 1.3,
+                    minOpacity: 0.35,
+                    maxOpacity: 0.85
+                });
+                createSnowSystem('appSnowCanvas', {
+                    count: 35,
+                    minR: 1.2,
+                    maxR: 3.2,
+                    minSpeed: 0.3,
+                    maxSpeed: 0.9,
+                    minOpacity: 0.25,
+                    maxOpacity: 0.65
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', startSnow);
+            } else {
+                startSnow();
+            }
+        })();
+    </script>
+
+    <!-- 1. 메인 렌더링 및 상호작용 스크립트 -->
     <script>
         window.isAdminAuthenticated = false;
         window.isSuperAdmin = false;
@@ -186,6 +437,17 @@
         window.activeTab = 'leaderboard'; 
         window.currentTeamId = 1; 
         window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+
+        // 초기 로컬 캐시 즉시 로드 (Firebase 연결 전에도 즉시 화면 표시)
+        try {
+            const cached = localStorage.getItem('dandelion_ox_standalone_v2');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (parsed && typeof parsed === 'object') {
+                    window.teamData = parsed;
+                }
+            }
+        } catch (e) {}
 
         function sanitizeTeamData() {
             if (!window.teamData || typeof window.teamData !== 'object') {
@@ -197,45 +459,148 @@
                 
                 window.teamData[i] = list.map(m => {
                     if (!m || typeof m !== 'object') return m;
+                    let bp = 0;
+                    if (m.bonusPoints !== undefined && m.bonusPoints !== null) {
+                        bp = Math.min(5, Math.max(0, Math.floor(Number(m.bonusPoints) || 0)));
+                    } else if (m.hasBonus) {
+                        bp = 1;
+                    }
                     return {
                         ...m,
                         records: m.records && typeof m.records === 'object' ? m.records : {},
-                        hasBonus: m.hasBonus !== undefined ? Boolean(m.hasBonus) : false
+                        bonusPoints: bp,
+                        hasBonus: bp > 0
                     };
                 });
             }
         }
 
+        function getMemberBonusPoints(member) {
+            if (!member) return 0;
+            if (member.bonusPoints !== undefined && member.bonusPoints !== null) {
+                return Math.min(5, Math.max(0, Math.floor(Number(member.bonusPoints) || 0)));
+            }
+            return member.hasBonus ? 1 : 0;
+        }
+
+        // 인앱 확인 모달 헬퍼 (샌드박스 confirm 대체)
+        let pendingConfirmAction = null;
+
+        function openConfirmModal(title, message, onConfirm, isDanger = false) {
+            const modal = document.getElementById('confirmModal');
+            const titleEl = document.getElementById('confirmModalTitle');
+            const msgEl = document.getElementById('confirmModalMessage');
+            const okBtn = document.getElementById('confirmOkBtn');
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+
+            if (!modal || !titleEl || !msgEl || !okBtn || !cancelBtn) return;
+
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+            pendingConfirmAction = onConfirm;
+
+            if (isDanger) {
+                okBtn.className = "flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-400 hover:to-red-400 text-white text-xs font-black transition shadow-md cursor-pointer";
+            } else {
+                okBtn.className = "flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 text-xs font-black transition shadow-md cursor-pointer";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            if (modal) modal.classList.add('hidden');
+            pendingConfirmAction = null;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const okBtn = document.getElementById('confirmOkBtn');
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+            const pwdInput = document.getElementById('adminPasswordInput');
+
+            if (cancelBtn) cancelBtn.addEventListener('click', closeConfirmModal);
+            if (okBtn) {
+                okBtn.addEventListener('click', () => {
+                    const action = pendingConfirmAction;
+                    closeConfirmModal();
+                    if (typeof action === 'function') action();
+                });
+            }
+            if (pwdInput) {
+                pwdInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        submitAdminAuth();
+                    } else if (e.key === 'Escape') {
+                        closeAdminAuthModal();
+                    }
+                });
+            }
+        });
+
+        // 인앱 관리자 인증 모달 제어
         function requestAdminAuth() {
             if (window.isAdminAuthenticated || window.isSuperAdmin) {
-                if (confirm("관리자 모드를 종료하시겠습니까?")) {
-                    window.isAdminAuthenticated = false;
-                    window.isSuperAdmin = false;
-                    document.getElementById('adminLockIcon').className = "fa-solid fa-lock";
-                    document.getElementById('adminBtnText').innerText = "ADMIN";
-                    render();
-                    showToast("관리자 권한이 해제되었습니다.");
-                }
+                openConfirmModal(
+                    "관리자 모드 종료",
+                    "관리자 모드를 종료하시겠습니까?",
+                    () => {
+                        window.isAdminAuthenticated = false;
+                        window.isSuperAdmin = false;
+                        document.getElementById('adminLockIcon').className = "fa-solid fa-lock text-cyan-300";
+                        document.getElementById('adminBtnText').innerText = "ADMIN";
+                        render();
+                        showToast("관리자 권한이 해제되었습니다.");
+                    }
+                );
                 return;
             }
 
-            const pwd = prompt("관리자 비밀번호를 입력하세요:");
+            const modal = document.getElementById('adminAuthModal');
+            const input = document.getElementById('adminPasswordInput');
+            const errEl = document.getElementById('adminAuthError');
+
+            if (errEl) errEl.classList.add('hidden');
+            if (input) input.value = '';
+            if (modal) modal.classList.remove('hidden');
+            if (input) setTimeout(() => input.focus(), 50);
+        }
+
+        function closeAdminAuthModal() {
+            const modal = document.getElementById('adminAuthModal');
+            const input = document.getElementById('adminPasswordInput');
+            if (input) input.value = '';
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function submitAdminAuth() {
+            const input = document.getElementById('adminPasswordInput');
+            const errEl = document.getElementById('adminAuthError');
+            const pwd = input ? input.value.trim() : '';
+
             if (pwd === "01025868373") {
                 window.isAdminAuthenticated = true;
                 window.isSuperAdmin = true;
-                document.getElementById('adminLockIcon').className = "fa-solid fa-shield-halved text-amber-300";
+                document.getElementById('adminLockIcon').className = "fa-solid fa-shield-halved text-cyan-300";
                 document.getElementById('adminBtnText').innerText = "SUPER ADMIN";
+                closeAdminAuthModal();
                 render();
-                showToast("⚡ 슈퍼 관리자 권한이 인증되었습니다.");
+                showToast("❄️ 슈퍼 관리자 권한이 인증되었습니다.");
             } else if (pwd === "8373") {
                 window.isAdminAuthenticated = true;
                 window.isSuperAdmin = false;
-                document.getElementById('adminLockIcon').className = "fa-solid fa-lock-open";
+                document.getElementById('adminLockIcon').className = "fa-solid fa-lock-open text-cyan-300";
                 document.getElementById('adminBtnText').innerText = "ADMIN (권한됨)";
+                closeAdminAuthModal();
                 render();
                 showToast("관리자 권한이 인증되었습니다.");
-            } else if (pwd !== null) {
-                alert("비밀번호가 올바르지 않습니다.");
+            } else {
+                if (errEl) errEl.classList.remove('hidden');
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
             }
         }
 
@@ -286,13 +651,13 @@
             const viewTeam = document.getElementById('viewTeamInput');
 
             if (tab === 'leaderboard') {
-                btnBoard.className = "flex-1 py-2 rounded-lg text-center transition bg-white text-blue-700 shadow-sm font-bold";
-                btnTeam.className = "flex-1 py-2 rounded-lg text-center transition text-blue-100 hover:text-white";
+                btnBoard.className = "flex-1 py-2 rounded-lg text-center transition bg-gradient-to-r from-white to-sky-50 text-sky-900 shadow-sm font-bold cursor-pointer";
+                btnTeam.className = "flex-1 py-2 rounded-lg text-center transition text-sky-100/80 hover:text-white cursor-pointer";
                 viewBoard.classList.remove('hidden');
                 viewTeam.classList.add('hidden');
             } else {
-                btnTeam.className = "flex-1 py-2 rounded-lg text-center transition bg-white text-blue-700 shadow-sm font-bold";
-                btnBoard.className = "flex-1 py-2 rounded-lg text-center transition text-blue-100 hover:text-white";
+                btnTeam.className = "flex-1 py-2 rounded-lg text-center transition bg-gradient-to-r from-white to-sky-50 text-sky-900 shadow-sm font-bold cursor-pointer";
+                btnBoard.className = "flex-1 py-2 rounded-lg text-center transition text-sky-100/80 hover:text-white cursor-pointer";
                 viewTeam.classList.remove('hidden');
                 viewBoard.classList.add('hidden');
             }
@@ -312,11 +677,12 @@
 
             for (let i = 1; i <= 6; i++) {
                 const btn = document.createElement('button');
+                btn.type = 'button';
                 btn.onclick = () => selectTeam(i);
                 if (i === window.currentTeamId) {
-                    btn.className = "py-2 rounded-xl bg-blue-600 text-white font-black shadow-sm text-center";
+                    btn.className = "py-2 rounded-xl bg-gradient-to-br from-sky-600 to-cyan-600 text-white font-black shadow-md shadow-cyan-900/20 text-center border border-cyan-300/40 cursor-pointer";
                 } else {
-                    btn.className = "py-2 rounded-xl bg-white/70 text-slate-600 font-bold hover:bg-white text-center transition";
+                    btn.className = "py-2 rounded-xl bg-white/80 text-slate-600 font-bold hover:bg-white text-center transition border border-sky-100 cursor-pointer";
                 }
                 btn.innerText = `${i}팀`;
                 container.appendChild(btn);
@@ -335,22 +701,22 @@
             if (footerContent) {
                 if (window.isAdminAuthenticated || window.isSuperAdmin) {
                     footerContent.innerHTML = `
-                        <span class="text-emerald-700 font-bold flex items-center gap-1.5">
-                            <span>🌼</span> MDR CREW
+                        <span class="text-sky-800 font-bold flex items-center gap-1.5">
+                            <span>❄️</span> MDR CREW WINTER
                         </span>
-                        <span class="text-slate-300">|</span>
-                        <button onclick="exportData()" class="flex items-center gap-1 hover:text-blue-600 transition font-medium">
+                        <span class="text-sky-200">|</span>
+                        <button type="button" onclick="exportData()" class="flex items-center gap-1 hover:text-cyan-700 transition font-medium cursor-pointer">
                             <i class="fa-solid fa-download"></i> 백업
                         </button>
-                        <span class="text-slate-300">|</span>
-                        <button onclick="triggerRestoreUpload()" class="flex items-center gap-1 hover:text-amber-600 transition font-medium text-amber-700">
+                        <span class="text-sky-200">|</span>
+                        <button type="button" onclick="triggerRestoreUpload()" class="flex items-center gap-1 hover:text-sky-700 transition font-medium text-sky-700 cursor-pointer">
                             <i class="fa-solid fa-upload"></i> 복원
                         </button>
                     `;
                 } else {
                     footerContent.innerHTML = `
-                        <span class="text-emerald-700 font-bold flex items-center gap-1.5">
-                            <span>🌼</span> MDR CREW
+                        <span class="text-sky-800 font-bold flex items-center gap-1.5">
+                            <span>❄️</span> MDR CREW WINTER
                         </span>
                     `;
                 }
@@ -362,8 +728,8 @@
                     adminMemberAddContainer.innerHTML = `
                         <div class="flex gap-2">
                             <input type="text" id="newMemberInput" placeholder="팀원 이름 입력 (예: 엄태풍)" 
-                                class="flex-1 px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 transition shadow-sm">
-                            <button onclick="addMember()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-sm active:scale-95 flex items-center gap-1">
+                                class="flex-1 px-4 py-2.5 text-sm bg-white/90 border border-sky-200 rounded-xl focus:outline-none focus:border-cyan-500 transition shadow-sm">
+                            <button type="button" onclick="addMember()" class="bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-sm active:scale-95 flex items-center gap-1 cursor-pointer">
                                 <i class="fa-solid fa-user-plus text-xs"></i> 팀원 추가
                             </button>
                         </div>
@@ -393,7 +759,7 @@
             if (targetBadge) {
                 if (diffDays > 0) {
                     const remainingDaysWithToday = diffDays + 1; 
-                    targetBadge.innerHTML = `🚩 챌린지 종료까지 단 ${remainingDaysWithToday}일! 파이팅 🏃`;
+                    targetBadge.innerHTML = `❄️ 챌린지 종료까지 단 ${remainingDaysWithToday}일! 파이팅 🏃`;
                 } else if (diffDays === 0) {
                     targetBadge.innerHTML = `🏁 오늘은 챌린지 마지막 날! 끝까지 파이팅 🏃`;
                 } else {
@@ -444,8 +810,8 @@
                 });
                 currentWeekRawCount += count;
                 
-                let hasBonus = m.hasBonus ? 1 : 0;
-                let cappedCount = Math.min(5, count) + hasBonus;
+                let bonus = getMemberBonusPoints(m);
+                let cappedCount = Math.min(5, count) + bonus;
                 memberWeekScores[m.id] = cappedCount;
             });
 
@@ -477,8 +843,8 @@
                         memberTotal += Math.min(5, allWeeksMap[key]);
                     }
                 });
-                let hasBonus = m.hasBonus ? 1 : 0;
-                totalCumulativeScore += (memberTotal + hasBonus);
+                let bonus = getMemberBonusPoints(m);
+                totalCumulativeScore += (memberTotal + bonus);
             });
 
             return {
@@ -536,14 +902,14 @@
             if (topTeams.length === 1) {
                 if (nameEl) nameEl.innerText = topTeamNamesStr;
                 if (statusBadge) {
-                    statusBadge.innerText = "🔥 단독 질주 중";
-                    statusBadge.className = "bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full inline-block shadow-sm";
+                    statusBadge.innerText = "❄️ 빙판 위 단독 질주 중";
+                    statusBadge.className = "bg-cyan-300 text-sky-950 text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block shadow-sm";
                 }
             } else {
                 if (nameEl) nameEl.innerText = topTeamNamesStr;
                 if (statusBadge) {
-                    statusBadge.innerText = "⚔️ 선두 경쟁 중";
-                    statusBadge.className = "bg-amber-400 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full inline-block shadow-sm";
+                    statusBadge.innerText = "⚔️ 설원 선두 경쟁 중";
+                    statusBadge.className = "bg-white text-sky-950 text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block shadow-sm";
                 }
             }
 
@@ -558,21 +924,21 @@
             rankings.forEach((item) => {
                 const rank = item.rank;
                 let medalHtml = `<span class="w-6 text-center text-sm font-bold text-slate-400">${rank}위</span>`;
-                let bgStyle = "bg-slate-50 border-slate-100";
+                let bgStyle = "bg-white/70 border-sky-100/90 hover:bg-white/95";
 
                 if (rank === 1) {
-                    medalHtml = `<span class="text-base font-bold text-blue-600">🥇 ${rank}위</span>`;
-                    bgStyle = "bg-blue-50 border-blue-200/80";
+                    medalHtml = `<span class="text-base font-bold text-sky-800">🥇 ${rank}위</span>`;
+                    bgStyle = "bg-gradient-to-r from-cyan-100/80 via-sky-50/90 to-white border-cyan-300 shadow-sm shadow-cyan-900/5";
                 } else if (rank === 2) {
-                    medalHtml = `<span class="text-base font-bold text-slate-500">🥈 ${rank}위</span>`;
-                    bgStyle = "bg-slate-100/80 border-slate-200";
+                    medalHtml = `<span class="text-base font-bold text-slate-600">🥈 ${rank}위</span>`;
+                    bgStyle = "bg-gradient-to-r from-slate-100/90 to-sky-50/60 border-slate-300/80";
                 } else if (rank === 3) {
-                    medalHtml = `<span class="text-base font-bold text-sky-600">🥉 ${rank}위</span>`;
-                    bgStyle = "bg-sky-50/60 border-sky-200/60";
+                    medalHtml = `<span class="text-base font-bold text-cyan-700">🥉 ${rank}위</span>`;
+                    bgStyle = "bg-gradient-to-r from-sky-100/60 to-white/90 border-sky-200/80";
                 }
 
                 const card = document.createElement('div');
-                card.className = `p-3.5 rounded-xl border flex flex-col gap-2.5 cursor-pointer hover:scale-[1.01] transition ${bgStyle}`;
+                card.className = `p-3.5 rounded-xl border flex flex-col gap-2.5 cursor-pointer hover:scale-[1.01] transition backdrop-blur-sm ${bgStyle}`;
                 card.onclick = () => {
                     selectTeam(item.teamId);
                     switchTab('team');
@@ -580,11 +946,17 @@
 
                 let membersHtml = '';
                 if (item.members && item.members.length > 0) {
-                    membersHtml = item.members.map(m => `
-                        <span class="inline-flex items-center gap-1 bg-white/90 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs font-semibold text-xs">
-                            <i class="fa-solid fa-user text-blue-600 text-[10px]"></i> ${escapeHtml(m.name)} ${m.hasBonus ? '<i class="fa-solid fa-star text-amber-500 text-[10px]" title="모임 참석 가산점 적용"></i>' : ''}
-                        </span>
-                    `).join(' ');
+                    membersHtml = item.members.map(m => {
+                        const bonus = getMemberBonusPoints(m);
+                        const bonusBadge = bonus > 0
+                            ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-600 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md" title="벙 참석 가산점 +${bonus}점">★ +${bonus}</span>`
+                            : '';
+                        return `
+                            <span class="inline-flex items-center gap-1 bg-white/95 text-slate-700 px-2.5 py-1 rounded-lg border border-sky-200/80 shadow-2xs font-semibold text-xs">
+                                <i class="fa-solid fa-user text-cyan-600 text-[10px]"></i> ${escapeHtml(m.name)} ${bonusBadge}
+                            </span>
+                        `;
+                    }).join(' ');
                 } else {
                     membersHtml = `<span class="text-xs text-slate-400 italic">등록된 팀원 없음</span>`;
                 }
@@ -600,14 +972,14 @@
                         </div>
                         <div class="text-right">
                             <div class="flex items-baseline gap-0.5 justify-end">
-                                <span class="text-xs font-bold text-blue-700 mr-1">누적</span>
-                                <span class="text-lg font-black text-blue-600">${item.totalCumulativeScore}</span>
+                                <span class="text-xs font-bold text-sky-800 mr-1">누적</span>
+                                <span class="text-lg font-black text-sky-700">${item.totalCumulativeScore}</span>
                                 <span class="text-xs text-slate-400 font-bold">점</span>
                             </div>
-                            <span class="text-[10px] text-emerald-600 font-semibold block">이번주 ${item.currentWeekScore}점</span>
+                            <span class="text-[10px] text-cyan-700 font-semibold block">이번주 ${item.currentWeekScore}점</span>
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-200/50">
+                    <div class="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-sky-200/50">
                         ${membersHtml}
                     </div>
                 `;
@@ -627,7 +999,7 @@
             if (scoreDisplayEl) scoreDisplayEl.innerText = currentTeamStats.currentWeekScore;
             
             const maxScoreEl = document.getElementById('teamMaxScoreLabel');
-            if (maxScoreEl) maxScoreEl.innerText = `인당 최대 5점 (가산점 별도 합산)`;
+            if (maxScoreEl) maxScoreEl.innerText = `인당 주 최대 5점 (가산점 최대 +5점 별도 합산)`;
             
             const rawCountEl = document.getElementById('teamRawCountDisplay');
             if (rawCountEl) rawCountEl.innerText = `이번 주: ${currentTeamStats.currentWeekScore}점 | 누적: ${currentTeamStats.totalCumulativeScore}점`;
@@ -637,7 +1009,7 @@
             if (dateGrid) {
                 dateGrid.innerHTML = dates.map((d, idx) => {
                     let colorClass = "text-slate-600";
-                    if (idx === 5) colorClass = "text-blue-500";
+                    if (idx === 5) colorClass = "text-sky-600";
                     if (idx === 6) colorClass = "text-rose-500";
                     return `
                         <div class="flex flex-col items-center">
@@ -656,7 +1028,7 @@
 
             if (members.length === 0) {
                 listEl.innerHTML = `
-                    <div class="text-center py-10 text-slate-400 text-sm bg-white rounded-2xl border border-slate-200/80">
+                    <div class="text-center py-10 text-slate-400 text-sm frost-card rounded-2xl">
                         등록된 팀원이 없습니다.<br>${window.isAdminAuthenticated ? '상단 입력창에서 팀원을 추가해 보세요!' : '관리자 로그인 후 팀원을 추가할 수 있습니다.'}
                     </div>
                 `;
@@ -670,39 +1042,59 @@
                 });
 
                 let cappedBaseScore = Math.min(5, memberOCount);
+                let bonusPoints = getMemberBonusPoints(member);
 
                 const card = document.createElement('div');
-                card.className = "bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2.5";
+                card.className = "frost-card p-3.5 rounded-2xl space-y-2.5";
 
                 let adminControlsHtml = '';
                 if (window.isAdminAuthenticated) {
-                    let toggleClass = member.hasBonus 
-                        ? "bg-amber-500 text-white border-amber-600 font-bold" 
-                        : "bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200 font-semibold";
-                    let toggleText = member.hasBonus ? "★ 가산점 ON (+1)" : "☆ 가산점 OFF";
+                    let starsHtml = '';
+                    for (let star = 1; star <= 5; star++) {
+                        const isActive = star <= bonusPoints;
+                        const starBtnClass = isActive
+                            ? "text-amber-400 drop-shadow-[0_1px_2px_rgba(245,158,11,0.45)] scale-105"
+                            : "text-slate-300 hover:text-amber-300";
+                        const starSymbol = isActive ? "★" : "☆";
+                        starsHtml += `
+                            <button type="button" onclick="setBonusPoint(${member.id}, ${star})"
+                                class="text-sm leading-none px-0.5 transition-transform active:scale-90 cursor-pointer ${starBtnClass}"
+                                title="가산점 +${star}점 설정 (재클릭 시 해제)">
+                                ${starSymbol}
+                            </button>
+                        `;
+                    }
 
                     adminControlsHtml += `
-                        <button onclick="toggleBonusPoint(${member.id})" class="text-[11px] px-2.5 py-1 rounded-lg border transition shadow-2xs active:scale-95 ${toggleClass}">
-                            ${toggleText}
-                        </button>
+                        <div class="inline-flex items-center gap-0.5 bg-sky-50/95 border border-sky-200/90 px-2 py-1 rounded-xl shadow-2xs" title="별표 클릭으로 가산점 0~5점 조절">
+                            <span class="text-[10px] font-bold text-slate-500 mr-1">가산</span>
+                            ${starsHtml}
+                            <span class="text-[10px] font-extrabold ml-1 ${bonusPoints > 0 ? 'text-amber-600' : 'text-slate-400'}">+${bonusPoints}</span>
+                        </div>
+                    `;
+                } else if (bonusPoints > 0) {
+                    adminControlsHtml += `
+                        <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-amber-700 bg-amber-50/95 border border-amber-200 px-2 py-0.5 rounded-full shadow-2xs">
+                            <span class="text-amber-500">★</span> +${bonusPoints}점
+                        </span>
                     `;
                 }
 
                 if (window.isSuperAdmin) {
                     adminControlsHtml += `
-                        <button onclick="deleteMember(${member.id})" class="text-rose-400 hover:text-rose-600 text-xs transition p-1" title="팀원 삭제">
+                        <button type="button" onclick="deleteMember(${member.id})" class="text-rose-400 hover:text-rose-600 text-xs transition p-1 cursor-pointer" title="팀원 삭제">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     `;
                 }
 
-                let scoreText = member.hasBonus ? `${cappedBaseScore}(+1)/5점` : `${cappedBaseScore}/5점`;
+                let scoreText = bonusPoints > 0 ? `${cappedBaseScore}(+${bonusPoints})/5점` : `${cappedBaseScore}/5점`;
 
                 let headerHtml = `
-                    <div class="flex justify-between items-center px-1">
+                    <div class="flex justify-between items-center gap-1.5 px-0.5 flex-wrap">
                         <span class="font-extrabold text-sm text-slate-800 flex items-center gap-1.5">
-                            <i class="fa-solid fa-user text-blue-600 text-xs"></i> ${escapeHtml(member.name)}
-                            <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            <i class="fa-solid fa-user text-cyan-600 text-xs"></i> ${escapeHtml(member.name)}
+                            <span class="text-[11px] font-bold text-sky-800 bg-cyan-100/80 px-2 py-0.5 rounded-full border border-cyan-200">
                                 인정: ${scoreText}
                             </span>
                         </span>
@@ -715,11 +1107,11 @@
                 let daysHtml = `<div class="grid grid-cols-7 gap-1.5">`;
                 dates.forEach((dateObj, idx) => {
                     const val = getMemberRecordForDate(member, dateObj);
-                    let btnStyle = "bg-slate-100 text-slate-300 border-slate-200 hover:bg-slate-200";
+                    let btnStyle = "bg-white/90 text-slate-300 border-sky-200/80 hover:bg-sky-50 hover:border-cyan-300";
                     let content = "-";
 
                     if (val === 'O') {
-                        btnStyle = "bg-blue-600 text-white font-black shadow-md shadow-blue-200 border-blue-600 scale-105";
+                        btnStyle = "bg-gradient-to-br from-cyan-500 to-sky-600 text-white font-black shadow-md shadow-cyan-500/30 border-cyan-300 scale-105";
                         content = "O";
                     }
 
@@ -727,8 +1119,8 @@
                     let disabledClass = "";
 
                     if (!window.isCloudConnected) {
-                        clickAction = `showToast('⚠️ DB 연결 중입니다. 상단 초록색 불을 확인 후 클릭해 주세요.', 'warn')`;
-                        disabledClass = "opacity-50 cursor-not-allowed";
+                        clickAction = `showToast('⚠️ DB 연결 중입니다. 잠시 후 다시 시도해 주세요.', 'warn')`;
+                        disabledClass = "opacity-60 cursor-not-allowed";
                     } else if (window.isAdminAuthenticated) {
                         clickAction = `toggleDay(${member.id}, ${idx})`;
                     } else {
@@ -736,8 +1128,8 @@
                     }
 
                     daysHtml += `
-                        <button onclick="${clickAction}" title="${dateObj.month}/${dateObj.date}(${dateObj.dayName})"
-                            class="h-10 rounded-xl text-sm transition-all duration-150 flex items-center justify-center border ${btnStyle} ${disabledClass} active:scale-90">
+                        <button type="button" onclick="${clickAction}" title="${dateObj.month}/${dateObj.date}(${dateObj.dayName})"
+                            class="h-10 rounded-xl text-sm transition-all duration-150 flex items-center justify-center border ${btnStyle} ${disabledClass} active:scale-90 cursor-pointer">
                             ${content}
                         </button>
                     `;
@@ -749,38 +1141,43 @@
             });
         }
 
-        function toggleBonusPoint(memberId) {
+        function setBonusPoint(memberId, starIndex) {
             if (!window.isAdminAuthenticated) {
-                alert("관리자 권한이 필요합니다.");
+                showToast("관리자 권한이 필요합니다.", "warn");
                 return;
             }
 
             if (typeof window.checkRealtimeConnection === 'function' && !window.checkRealtimeConnection()) {
-                alert("⚠️ DB 연결 상태를 확인 후 시도해 주세요.");
+                showToast("⚠️ DB 연결 상태를 확인 후 시도해 주세요.", "warn");
                 return;
             }
 
             const member = (window.teamData[window.currentTeamId] || []).find(m => m.id === memberId);
             if (!member) return;
 
-            member.hasBonus = !member.hasBonus;
+            const currentBonus = getMemberBonusPoints(member);
+            const targetStar = Math.min(5, Math.max(1, Number(starIndex) || 1));
+            const nextBonus = (currentBonus === targetStar) ? 0 : targetStar;
+
+            member.bonusPoints = nextBonus;
+            member.hasBonus = nextBonus > 0;
             render();
 
             if (typeof window.saveTeamCloudData === 'function') {
                 window.saveTeamCloudData(window.currentTeamId);
             }
 
-            showToast(`${member.name} 팀원 가산점 ${member.hasBonus ? '적용 (+1점)' : '해제 (0점)'}`);
+            showToast(`${member.name} 팀원 가산점 ${nextBonus > 0 ? `+${nextBonus}점 적용` : '해제 (0점)'}`);
         }
 
         function toggleDay(memberId, dayIndex) {
             if (!window.isAdminAuthenticated) {
-                alert("관리자 권한이 필요합니다.");
+                showToast("관리자 권한이 필요합니다.", "warn");
                 return;
             }
 
             if (typeof window.checkRealtimeConnection === 'function' && !window.checkRealtimeConnection()) {
-                alert("⚠️ 현재 실시간 DB 연결이 끊어져 있습니다.\n네트워크 재연결 후 시도해 주세요.");
+                showToast("⚠️ 현재 실시간 DB 연결이 끊어져 있습니다.", "warn");
                 return;
             }
 
@@ -801,19 +1198,25 @@
 
             showToast(`${member.name} - ${dateObj.month}/${dateObj.date} ${newVal ? "'O' 입력" : "해제됨"}`);
 
+            // 겨울 테마 컨페티 (화이트, 아이스 블루, 시안, 실버)
             if (newVal === 'O' && typeof confetti === 'function') {
-                confetti({ particleCount: 20, spread: 40, origin: { y: 0.8 } });
+                confetti({
+                    particleCount: 26,
+                    spread: 48,
+                    origin: { y: 0.8 },
+                    colors: ['#ffffff', '#bae6fd', '#38bdf8', '#22d3ee', '#e2e8f0']
+                });
             }
         }
 
         function addMember() {
             if (!window.isAdminAuthenticated) {
-                alert("관리자 권한이 필요합니다.");
+                showToast("관리자 권한이 필요합니다.", "warn");
                 return;
             }
 
             if (typeof window.checkRealtimeConnection === 'function' && !window.checkRealtimeConnection()) {
-                alert("⚠️ 현재 DB 연결이 끊어진 상태입니다.");
+                showToast("⚠️ 현재 DB 연결이 끊어진 상태입니다.", "warn");
                 return;
             }
 
@@ -829,6 +1232,7 @@
                 id: Date.now() + Math.floor(Math.random() * 1000),
                 name: name,
                 records: {},
+                bonusPoints: 0,
                 hasBonus: false
             });
 
@@ -843,29 +1247,37 @@
 
         function deleteMember(id) {
             if (!window.isSuperAdmin) {
-                alert("⛔ 삭제 기능은 슈퍼 관리자(SUPER ADMIN) 권한이 필요합니다.");
+                showToast("⛔ 삭제 기능은 슈퍼 관리자 권한이 필요합니다.", "error");
                 return;
             }
 
             if (typeof window.checkRealtimeConnection === 'function' && !window.checkRealtimeConnection()) {
-                alert("⚠️ 오프라인 상태에서는 팀원을 삭제할 수 없습니다.");
+                showToast("⚠️ 오프라인 상태에서는 팀원을 삭제할 수 없습니다.", "warn");
                 return;
             }
 
-            if (confirm("정말로 이 팀원을 삭제하시겠습니까?")) {
-                window.teamData[window.currentTeamId] = window.teamData[window.currentTeamId].filter(m => m.id !== id);
-                render();
-                
-                if (typeof window.saveTeamCloudData === 'function') {
-                    window.saveTeamCloudData(window.currentTeamId);
-                }
-                showToast('팀원이 삭제되었습니다.');
-            }
+            const targetMember = (window.teamData[window.currentTeamId] || []).find(m => m.id === id);
+            const targetName = targetMember ? targetMember.name : '이';
+
+            openConfirmModal(
+                "팀원 삭제",
+                `정말로 '${targetName}' 팀원을 삭제하시겠습니까?`,
+                () => {
+                    window.teamData[window.currentTeamId] = window.teamData[window.currentTeamId].filter(m => m.id !== id);
+                    render();
+                    
+                    if (typeof window.saveTeamCloudData === 'function') {
+                        window.saveTeamCloudData(window.currentTeamId);
+                    }
+                    showToast('팀원이 삭제되었습니다.');
+                },
+                true
+            );
         }
 
         function exportData() {
             if (!window.isAdminAuthenticated && !window.isSuperAdmin) {
-                alert("⛔ 백업 기능은 관리자 권한이 필요합니다.");
+                showToast("⛔ 백업 기능은 관리자 권한이 필요합니다.", "error");
                 return;
             }
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.teamData, null, 2));
@@ -880,12 +1292,12 @@
 
         function triggerRestoreUpload() {
             if (!window.isAdminAuthenticated && !window.isSuperAdmin) {
-                alert("⛔ 복원 기능은 관리자 권한이 필요합니다.");
+                showToast("⛔ 복원 기능은 관리자 권한이 필요합니다.", "error");
                 return;
             }
 
             if (typeof window.checkRealtimeConnection === 'function' && !window.checkRealtimeConnection()) {
-                alert("⚠️ DB 연결 상태가 아닐 때는 복원을 수행할 수 없습니다.");
+                showToast("⚠️ DB 연결 상태가 아닐 때는 복원을 수행할 수 없습니다.", "warn");
                 return;
             }
 
@@ -902,22 +1314,26 @@
                 try {
                     const parsedData = JSON.parse(e.target.result);
                     if (typeof parsedData === 'object' && parsedData !== null) {
-                        if (confirm("백업 파일의 데이터로 클라우드 DB를 덮어씌우시겠습니까?")) {
-                            window.teamData = parsedData;
-                            sanitizeTeamData();
-                            render();
-                            for (let tId = 1; tId <= 6; tId++) {
-                                if (typeof window.saveTeamCloudData === 'function') {
-                                    window.saveTeamCloudData(tId);
+                        openConfirmModal(
+                            "데이터 복원",
+                            "백업 파일의 데이터로 클라우드 DB를 덮어씌우시겠습니까?",
+                            () => {
+                                window.teamData = parsedData;
+                                sanitizeTeamData();
+                                render();
+                                for (let tId = 1; tId <= 6; tId++) {
+                                    if (typeof window.saveTeamCloudData === 'function') {
+                                        window.saveTeamCloudData(tId);
+                                    }
                                 }
+                                showToast("📂 백업 데이터가 성공적으로 복원되었습니다!");
                             }
-                            showToast("📂 백업 데이터가 성공적으로 복원되었습니다!");
-                        }
+                        );
                     } else {
-                        alert("올바르지 않은 백업 파일 형식입니다.");
+                        showToast("올바르지 않은 백업 파일 형식입니다.", "error");
                     }
                 } catch (err) {
-                    alert("JSON 파일을 읽는 중 오류가 발생했습니다.");
+                    showToast("JSON 파일을 읽는 중 오류가 발생했습니다.", "error");
                 }
                 event.target.value = '';
             };
@@ -932,15 +1348,15 @@
 
             toastText.innerText = msg;
             if (type === 'warn' || type === 'error') {
-                if (toastIcon) toastIcon.className = "fa-solid fa-triangle-exclamation text-amber-400";
+                if (toastIcon) toastIcon.className = "fa-solid fa-triangle-exclamation text-amber-300";
             } else {
-                if (toastIcon) toastIcon.className = "fa-solid fa-circle-check text-emerald-400";
+                if (toastIcon) toastIcon.className = "fa-solid fa-snowflake text-cyan-300";
             }
 
             toast.classList.add('opacity-100');
             setTimeout(() => {
                 toast.classList.remove('opacity-100');
-            }, 2000);
+            }, 2200);
         }
 
         function escapeHtml(text) {
@@ -948,6 +1364,9 @@
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return String(text).replace(/[&<>"']/g, m => map[m]);
         }
+
+        // 스크립트 로드 즉시 1회 초기 렌더링 실행
+        render();
     </script>
 
     <!-- 2. Firebase Module JS -->
@@ -1108,15 +1527,6 @@
 
         function updateDbBadge(connected) {
             window.isCloudConnected = connected;
-            const badge = document.getElementById('dbStatusBadge');
-            if (!badge) return;
-            if (connected) {
-                badge.className = "text-[10px] bg-emerald-600/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span> 데이터 삭제 방지 기원 DB 연결됨`;
-            } else {
-                badge.className = "text-[10px] bg-slate-700/90 text-white font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm";
-                badge.innerHTML = `<i class="fa-solid fa-hard-drive text-[9px]"></i> 오프라인 저장 모드`;
-            }
             if (typeof window.render === 'function') window.render();
         }
 
@@ -1131,10 +1541,15 @@
         window.addEventListener('online', () => updateDbBadge(true));
         window.addEventListener('offline', () => updateDbBadge(false));
 
-        document.addEventListener('DOMContentLoaded', () => {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                if (typeof window.render === 'function') window.render();
+                initCloudDatabase();
+            });
+        } else {
             if (typeof window.render === 'function') window.render();
             initCloudDatabase();
-        });
+        }
     </script>
 </body>
 </html>
