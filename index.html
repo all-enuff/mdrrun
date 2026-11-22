@@ -175,35 +175,38 @@
                         <i class="fa-solid fa-circle-info text-cyan-600"></i> 민들레런 챌린지 규칙
                     </p>
                     <ul class="list-disc list-inside text-sky-900/90 space-y-1 pl-1 text-[11px]">
-                        <li><strong>러닝 인정 기준:</strong> 3km 이상, 평균 페이스 8:00/km 이내(등산도 1회 인정)입니다.</li>
-                        <li><strong>벙 가산점 기준:</strong> 벙 2회 참석 시 가산점 <strong>+1점</strong>을 부여합니다. (최대 +5점 / ex. 벙 6회 참석 +3점)</li>
-                        <li><strong>가산점 상한:</strong> 가산점은 <strong>최대 5점</strong>까지만 인정됩니다.</li>
-                        <li><strong>주간 인정 제한:</strong> 1인당 주 최대 <strong>5회(5점)</strong>까지만 인정되며, 가산점은 별도 합산됩니다.</li>
-                        <li><strong>제외 대상:</strong> 쇼핑몰·마트 등 실내 보행 공간 러닝은 인정되지 않습니다.</li>
-                        <li><strong>러닝머신 기준:</strong> 평균 페이스 <strong>8:00/km 이내</strong> 기록만 인정됩니다.</li>
-                        <li><strong>기록 기준:</strong> 자정을 넘어 종료해도 취침 전 시작한 날짜 기준으로 인정됩니다.</li>
-                        <li><strong>동점 처리:</strong> 공동 1등은 랜덤게임으로 최종 순위를 결정합니다.</li>
+                        <li><strong>인원수 가중치:</strong>  (최대 팀 인원 ÷ 해당 팀 인원)배율 적용<strong>(2명팀 1.5배)</strong> </li>
+                        <li><strong>러닝 인정 기준:</strong> 3km 이상, 평균 페이스 8:00/km 이내(등산도 1회 인정)</li>
+                        <li><strong>벙 가산점 기준:</strong> 벙 2회 참석당 가산점 <strong>+1점</strong>을 부여 (최대 +5점)</li>
+                        <li><strong>주간 인정 제한:</strong> 1인당 주 최대 <strong>5회(5점)</strong>까지만 인정되며, 가산점은 별도</li>
+                        <li><strong>제외 대상:</strong> 쇼핑몰·마트 등 실내 보행 공간 러닝은 인정 안함</li>
+                        <li><strong>러닝머신 기준:</strong> 평균 페이스 <strong>8:00/km 이내</strong> 기록만 인정</li>
+                        <li><strong>기록 기준:</strong> 자정을 넘어 종료해도 취침 전 시작한 날짜 기준으로 인정</li>
+                        <li><strong>동점 처리:</strong> 공동 1등은 랜덤게임으로 최종 순위를 결정</li>
                     </ul>
                 </div>
             </section>
 
             <!-- VIEW 2: 팀별 O/X 입력 화면 -->
             <section id="viewTeamInput" class="space-y-4 hidden">
-                <div class="grid grid-cols-6 gap-1.5 bg-sky-200/50 border border-sky-200/80 p-1.5 rounded-2xl text-xs font-bold backdrop-blur-sm" id="teamTabSelector"></div>
+                <div class="grid grid-cols-5 gap-1.5 bg-sky-200/50 border border-sky-200/80 p-1.5 rounded-2xl text-xs font-bold backdrop-blur-sm" id="teamTabSelector"></div>
 
-                <div class="frost-card rounded-2xl p-4 flex items-center justify-between">
-                    <div>
-                        <div class="flex items-center gap-2">
+                <div class="frost-card rounded-2xl p-4 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
                             <span id="selectedTeamTitle" class="text-lg font-extrabold text-slate-800">1팀</span>
                             <span id="selectedTeamRankBadge" class="bg-cyan-100 text-sky-800 border border-cyan-200 text-[11px] font-bold px-2 py-0.5 rounded-full">
                                 랭킹 1위
                             </span>
+                            <span id="selectedTeamWeightBadge" class="hidden bg-indigo-100 text-indigo-800 border border-indigo-200 text-[11px] font-extrabold px-2 py-0.5 rounded-full">
+                                가중치 ×1.5
+                            </span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">이 팀의 팀원별 달성 기록을 관리합니다.</p>
+                        <p class="text-xs text-slate-500 mt-1">이 팀의 팀원별 달성 기록을 관리합니다. (11/23 ~ 12/18)</p>
                     </div>
-                    <div class="text-right flex flex-col items-end">
+                    <div class="text-right flex flex-col items-end shrink-0">
                         <span id="teamScoreDisplay" class="text-3xl font-black text-sky-700 leading-none">0</span>
-                        <span id="teamMaxScoreLabel" class="text-slate-400 font-bold text-xs mt-1">인당 주 최대 5점 (가산점 최대 +5점 별도 합산)</span>
+                        <span id="teamMaxScoreLabel" class="text-slate-400 font-bold text-[11px] mt-1">인당 주 최대 5점 (가산점 +5점 별도)</span>
                         <span id="teamRawCountDisplay" class="text-[11px] text-cyan-700 font-bold block mt-1">이번 주: 0점 | 누적: 0점</span>
                     </div>
                 </div>
@@ -288,24 +291,20 @@
     <!-- 보안 보호 스크립트 (우클릭 및 F12/개발자도구 단축키 차단 - 클릭/입력 간섭 없음) -->
     <script>
         (function initAntiInspectionProtection() {
-            // 1. 마우스 오른쪽 클릭 차단
             document.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
             });
 
-            // 2. F12, 개발자 도구, 소스 보기, 페이지 저장 단축키만 정교하게 차단
             document.addEventListener('keydown', function (e) {
                 const key = (e.key || '').toUpperCase();
                 const keyCode = e.keyCode || e.which;
 
-                // F12 차단
                 if (keyCode === 123 || key === 'F12') {
                     e.preventDefault();
                     e.stopPropagation();
                     return false;
                 }
 
-                // Ctrl + Shift + I / J / C (Windows/Linux) 또는 Cmd + Option + I / J / C (macOS)
                 if ((e.ctrlKey && e.shiftKey && (key === 'I' || key === 'J' || key === 'C' || keyCode === 73 || keyCode === 74 || keyCode === 67)) ||
                     (e.metaKey && e.altKey && (key === 'I' || key === 'J' || key === 'C' || keyCode === 73 || keyCode === 74 || keyCode === 67))) {
                     e.preventDefault();
@@ -313,7 +312,6 @@
                     return false;
                 }
 
-                // Ctrl + U / Cmd + Option + U (페이지 소스 보기)
                 if ((e.ctrlKey && (key === 'U' || keyCode === 85)) ||
                     (e.metaKey && e.altKey && (key === 'U' || keyCode === 85))) {
                     e.preventDefault();
@@ -321,7 +319,6 @@
                     return false;
                 }
 
-                // Ctrl + S / Cmd + S (페이지 저장)
                 if ((e.ctrlKey || e.metaKey) && (key === 'S' || keyCode === 83)) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -430,15 +427,20 @@
 
     <!-- 1. 메인 렌더링 및 상호작용 스크립트 -->
     <script>
+        const TOTAL_TEAMS = 5;
+        window.TOTAL_TEAMS = TOTAL_TEAMS;
         window.isAdminAuthenticated = false;
         window.isSuperAdmin = false;
         window.isCloudConnected = false; 
         window.currentWeekOffset = 0;
         window.activeTab = 'leaderboard'; 
         window.currentTeamId = 1; 
-        window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+        window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [] };
 
-        // 초기 로컬 캐시 즉시 로드 (Firebase 연결 전에도 즉시 화면 표시)
+        // 챌린지 기간 설정: 2026년 11월 23일 ~ 2026년 12월 18일
+        const CHALLENGE_START_DATE = new Date(2026, 10, 23); // 11월 23일
+        const CHALLENGE_END_DATE = new Date(2026, 11, 18);   // 12월 18일
+
         try {
             const cached = localStorage.getItem('dandelion_ox_standalone_v2');
             if (cached) {
@@ -451,39 +453,86 @@
 
         function sanitizeTeamData() {
             if (!window.teamData || typeof window.teamData !== 'object') {
-                window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+                window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [] };
             }
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= TOTAL_TEAMS; i++) {
                 let raw = window.teamData[i];
                 let list = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.values(raw) : []);
                 
                 window.teamData[i] = list.map(m => {
                     if (!m || typeof m !== 'object') return m;
-                    let bp = 0;
-                    if (m.bonusPoints !== undefined && m.bonusPoints !== null) {
-                        bp = Math.min(5, Math.max(0, Math.floor(Number(m.bonusPoints) || 0)));
+                    
+                    let bungCount = 0;
+                    if (m.bungCount !== undefined && m.bungCount !== null && !isNaN(Number(m.bungCount))) {
+                        bungCount = Math.max(0, Math.floor(Number(m.bungCount)));
+                    } else if (m.bonusPoints !== undefined && m.bonusPoints !== null) {
+                        bungCount = Math.max(0, Math.floor(Number(m.bonusPoints) || 0)) * 2;
                     } else if (m.hasBonus) {
-                        bp = 1;
+                        bungCount = 2;
                     }
+
+                    const bp = Math.min(5, Math.floor(bungCount / 2));
+
                     return {
                         ...m,
                         records: m.records && typeof m.records === 'object' ? m.records : {},
+                        bungCount: bungCount,
                         bonusPoints: bp,
                         hasBonus: bp > 0
                     };
                 });
             }
+            if (window.currentTeamId < 1 || window.currentTeamId > TOTAL_TEAMS) {
+                window.currentTeamId = 1;
+            }
+        }
+
+        function formatScore(num) {
+            const rounded = Math.round((Number(num) || 0) * 100) / 100;
+            return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+        }
+
+        function formatMultiplier(mult) {
+            const rounded = Math.round((Number(mult) || 1) * 100) / 100;
+            return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+        }
+
+        function getMaxTeamMemberCount() {
+            let maxCount = 0;
+            for (let i = 1; i <= TOTAL_TEAMS; i++) {
+                const count = (window.teamData[i] || []).length;
+                if (count > maxCount) maxCount = count;
+            }
+            return maxCount;
+        }
+
+        function getMemberBungCount(member) {
+            if (!member) return 0;
+            if (member.bungCount !== undefined && member.bungCount !== null && !isNaN(Number(member.bungCount))) {
+                return Math.max(0, Math.floor(Number(member.bungCount)));
+            }
+            if (member.bonusPoints !== undefined && member.bonusPoints !== null) {
+                return Math.max(0, Math.floor(Number(member.bonusPoints) || 0)) * 2;
+            }
+            return member.hasBonus ? 2 : 0;
         }
 
         function getMemberBonusPoints(member) {
-            if (!member) return 0;
-            if (member.bonusPoints !== undefined && member.bonusPoints !== null) {
-                return Math.min(5, Math.max(0, Math.floor(Number(member.bonusPoints) || 0)));
-            }
-            return member.hasBonus ? 1 : 0;
+            const bungCount = getMemberBungCount(member);
+            return Math.min(5, Math.floor(bungCount / 2));
         }
 
-        // 인앱 확인 모달 헬퍼 (샌드박스 confirm 대체)
+        function isWithinChallengePeriod(dateObjOrDate) {
+            const target = dateObjOrDate instanceof Date
+                ? new Date(dateObjOrDate.getFullYear(), dateObjOrDate.getMonth(), dateObjOrDate.getDate())
+                : new Date(dateObjOrDate.year, dateObjOrDate.month - 1, dateObjOrDate.date);
+
+            const start = new Date(CHALLENGE_START_DATE.getFullYear(), CHALLENGE_START_DATE.getMonth(), CHALLENGE_START_DATE.getDate());
+            const end = new Date(CHALLENGE_END_DATE.getFullYear(), CHALLENGE_END_DATE.getMonth(), CHALLENGE_END_DATE.getDate());
+
+            return target >= start && target <= end;
+        }
+
         let pendingConfirmAction = null;
 
         function openConfirmModal(title, message, onConfirm, isDanger = false) {
@@ -539,7 +588,6 @@
             }
         });
 
-        // 인앱 관리자 인증 모달 제어
         function requestAdminAuth() {
             if (window.isAdminAuthenticated || window.isSuperAdmin) {
                 openConfirmModal(
@@ -619,14 +667,16 @@
                 const d = new Date(monday);
                 d.setDate(monday.getDate() + i);
                 
+                const year = d.getFullYear();
                 const month = d.getMonth() + 1;
                 const date = d.getDate();
                 
                 const shortDateStr = `${month}/${date}`;
                 const paddedDateStr = `${String(month).padStart(2, '0')}/${String(date).padStart(2, '0')}`;
-                const fullDateStr = `${d.getFullYear()}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                const fullDateStr = `${year}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                const inChallenge = isWithinChallengePeriod(d);
 
-                days.push({ month, date, dayName: dayNames[i], shortDateStr, paddedDateStr, fullDateStr });
+                days.push({ year, month, date, dayName: dayNames[i], shortDateStr, paddedDateStr, fullDateStr, inChallenge });
             }
             return days;
         }
@@ -675,7 +725,7 @@
             if (!container) return;
             container.innerHTML = '';
 
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= TOTAL_TEAMS; i++) {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.onclick = () => selectTeam(i);
@@ -745,25 +795,27 @@
                 }
             }
 
-            // 8월 28일 당일 포함 D-Day 계산
-            const endDate = new Date(2026, 7, 28); // 2026년 8월 28일
+            // 11월 23일 ~ 12월 18일 기간 기준 D-Day 계산
             const today = new Date();
-            
             const cleanToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            const cleanEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-            
-            const diffTime = cleanEnd - cleanToday;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const cleanStart = new Date(CHALLENGE_START_DATE.getFullYear(), CHALLENGE_START_DATE.getMonth(), CHALLENGE_START_DATE.getDate());
+            const cleanEnd = new Date(CHALLENGE_END_DATE.getFullYear(), CHALLENGE_END_DATE.getMonth(), CHALLENGE_END_DATE.getDate());
 
             const targetBadge = document.getElementById('targetDayBadge');
             if (targetBadge) {
-                if (diffDays > 0) {
-                    const remainingDaysWithToday = diffDays + 1; 
-                    targetBadge.innerHTML = `❄️ 챌린지 종료까지 단 ${remainingDaysWithToday}일! 파이팅 🏃`;
-                } else if (diffDays === 0) {
-                    targetBadge.innerHTML = `🏁 오늘은 챌린지 마지막 날! 끝까지 파이팅 🏃`;
+                if (cleanToday < cleanStart) {
+                    const daysUntilStart = Math.ceil((cleanStart - cleanToday) / (1000 * 60 * 60 * 24));
+                    targetBadge.innerHTML = `❄️ 챌린지 시작까지 D-${daysUntilStart} (11/23 ~ 12/18)`;
+                } else if (cleanToday <= cleanEnd) {
+                    const diffDays = Math.floor((cleanEnd - cleanToday) / (1000 * 60 * 60 * 24));
+                    if (diffDays > 0) {
+                        const remainingDaysWithToday = diffDays + 1;
+                        targetBadge.innerHTML = `❄️ 챌린지 종료까지 단 ${remainingDaysWithToday}일! 파이팅 🏃`;
+                    } else {
+                        targetBadge.innerHTML = `🏁 오늘은 챌린지 마지막 날! 끝까지 파이팅 🏃`;
+                    }
                 } else {
-                    targetBadge.innerHTML = `🏆 챌린지가 모두 종료되었습니다! 고생하셨습니다 👏`;
+                    targetBadge.innerHTML = `🏆 챌린지(11/23~12/18)가 종료되었습니다! 고생하셨습니다 👏`;
                 }
             }
 
@@ -789,12 +841,19 @@
             member.records[dateObj.fullDateStr] = val;
         }
 
-        function calculateTeamScores(teamId) {
+        function calculateTeamScores(teamId, maxTeamMemberCount = null) {
             sanitizeTeamData();
             const dates = getWeekDates(window.currentWeekOffset);
             let members = window.teamData[teamId] || [];
 
             const memberCount = members.length;
+            const referenceMaxMembers = maxTeamMemberCount !== null ? maxTeamMemberCount : getMaxTeamMemberCount();
+
+            // 인원수 가중치 계산: 기준 최대 인원 / 해당 팀 인원 (예: 3명 기준 2명 팀이면 1.5배)
+            const weightMultiplier = (memberCount > 0 && referenceMaxMembers > memberCount)
+                ? (referenceMaxMembers / memberCount)
+                : 1;
+
             const teamMaxScore = memberCount * 5; 
 
             let currentWeekRawCount = 0; 
@@ -806,7 +865,7 @@
 
                 let count = 0;
                 dates.forEach(dObj => {
-                    if (getMemberRecordForDate(m, dObj) === 'O') count++;
+                    if (dObj.inChallenge && getMemberRecordForDate(m, dObj) === 'O') count++;
                 });
                 currentWeekRawCount += count;
                 
@@ -815,7 +874,10 @@
                 memberWeekScores[m.id] = cappedCount;
             });
 
-            let currentWeekScore = Object.values(memberWeekScores).reduce((a, b) => a + b, 0);
+            // 가중치 적용 전 원점수 (이번 주)
+            let rawCurrentWeekScore = Object.values(memberWeekScores).reduce((a, b) => a + b, 0);
+            // 가중치 적용 최종 점수 (이번 주)
+            let currentWeekScore = Math.round(rawCurrentWeekScore * weightMultiplier * 100) / 100;
 
             let allWeeksMap = {}; 
             members.forEach(m => {
@@ -823,7 +885,7 @@
                 Object.entries(m.records).forEach(([dateStr, val]) => {
                     if (val === 'O') {
                         let d = new Date(dateStr);
-                        if (!isNaN(d.getTime())) {
+                        if (!isNaN(d.getTime()) && isWithinChallengePeriod(d)) {
                             let day = d.getDay();
                             let diff = d.getDate() - day + (day === 0 ? -6 : 1);
                             let mon = new Date(d.setDate(diff));
@@ -834,7 +896,8 @@
                 });
             });
 
-            let totalCumulativeScore = 0;
+            // 가중치 적용 전 원점수 (누적)
+            let rawTotalCumulativeScore = 0;
             members.forEach(m => {
                 if (!m) return;
                 let memberTotal = 0;
@@ -844,14 +907,21 @@
                     }
                 });
                 let bonus = getMemberBonusPoints(m);
-                totalCumulativeScore += (memberTotal + bonus);
+                rawTotalCumulativeScore += (memberTotal + bonus);
             });
+
+            // 가중치 적용 최종 점수 (누적)
+            let totalCumulativeScore = Math.round(rawTotalCumulativeScore * weightMultiplier * 100) / 100;
 
             return {
                 teamId,
                 currentWeekRawCount,
+                rawCurrentWeekScore,
                 currentWeekScore,
+                rawTotalCumulativeScore,
                 totalCumulativeScore,
+                weightMultiplier,
+                referenceMaxMembers,
                 memberCount,
                 teamMaxScore,
                 members
@@ -859,9 +929,10 @@
         }
 
         function getAllTeamRankings() {
+            const maxMembers = getMaxTeamMemberCount();
             const rankings = [];
-            for (let i = 1; i <= 6; i++) {
-                rankings.push(calculateTeamScores(i));
+            for (let i = 1; i <= TOTAL_TEAMS; i++) {
+                rankings.push(calculateTeamScores(i, maxMembers));
             }
 
             rankings.sort((a, b) => {
@@ -914,7 +985,7 @@
             }
 
             if (scoreEl) {
-                scoreEl.innerText = `총 점수 ${rankings[0].totalCumulativeScore}점 (이번 주: ${rankings[0].currentWeekScore}점)`;
+                scoreEl.innerText = `총 점수 ${formatScore(rankings[0].totalCumulativeScore)}점 (이번 주: ${formatScore(rankings[0].currentWeekScore)}점)`;
             }
 
             const listEl = document.getElementById('leaderboardList');
@@ -947,9 +1018,10 @@
                 let membersHtml = '';
                 if (item.members && item.members.length > 0) {
                     membersHtml = item.members.map(m => {
+                        const bungCount = getMemberBungCount(m);
                         const bonus = getMemberBonusPoints(m);
                         const bonusBadge = bonus > 0
-                            ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-600 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md" title="벙 참석 가산점 +${bonus}점">★ +${bonus}</span>`
+                            ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-600 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md" title="벙 ${bungCount}회 참석 가산점 +${bonus}점">★ +${bonus}</span>`
                             : '';
                         return `
                             <span class="inline-flex items-center gap-1 bg-white/95 text-slate-700 px-2.5 py-1 rounded-lg border border-sky-200/80 shadow-2xs font-semibold text-xs">
@@ -961,22 +1033,31 @@
                     membersHtml = `<span class="text-xs text-slate-400 italic">등록된 팀원 없음</span>`;
                 }
 
+                const weightBadgeHtml = item.weightMultiplier > 1
+                    ? `<span class="inline-flex items-center text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-1.5 py-0.2 rounded-md ml-1" title="인원 보정 가중치 (${item.referenceMaxMembers}명 ÷ ${item.memberCount}명 = ×${formatMultiplier(item.weightMultiplier)})">×${formatMultiplier(item.weightMultiplier)}배</span>`
+                    : '';
+
+                const rawScoreNoteHtml = item.weightMultiplier > 1
+                    ? `<span class="text-[10px] text-slate-400 font-medium block">원점수 ${formatScore(item.rawTotalCumulativeScore)}점 · 이번주 ${formatScore(item.currentWeekScore)}점</span>`
+                    : `<span class="text-[10px] text-cyan-700 font-semibold block">이번주 ${formatScore(item.currentWeekScore)}점</span>`;
+
                 card.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5 flex-wrap">
                             ${medalHtml}
-                            <div>
+                            <div class="flex items-center flex-wrap">
                                 <span class="font-bold text-sm text-slate-800">${item.teamId}팀</span>
                                 <span class="text-[11px] text-slate-500 font-medium ml-1">(팀원 ${item.memberCount}명)</span>
+                                ${weightBadgeHtml}
                             </div>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right shrink-0">
                             <div class="flex items-baseline gap-0.5 justify-end">
                                 <span class="text-xs font-bold text-sky-800 mr-1">누적</span>
-                                <span class="text-lg font-black text-sky-700">${item.totalCumulativeScore}</span>
+                                <span class="text-lg font-black text-sky-700">${formatScore(item.totalCumulativeScore)}</span>
                                 <span class="text-xs text-slate-400 font-bold">점</span>
                             </div>
-                            <span class="text-[10px] text-cyan-700 font-semibold block">이번주 ${item.currentWeekScore}점</span>
+                            ${rawScoreNoteHtml}
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-sky-200/50">
@@ -995,24 +1076,42 @@
             const rankBadgeEl = document.getElementById('selectedTeamRankBadge');
             if (rankBadgeEl) rankBadgeEl.innerText = `누적 랭킹 ${currentTeamStats.rank}위`;
 
+            const weightBadgeEl = document.getElementById('selectedTeamWeightBadge');
+            if (weightBadgeEl) {
+                if (currentTeamStats.weightMultiplier > 1) {
+                    weightBadgeEl.innerText = `인원 가중치 ×${formatMultiplier(currentTeamStats.weightMultiplier)}배`;
+                    weightBadgeEl.classList.remove('hidden');
+                } else {
+                    weightBadgeEl.classList.add('hidden');
+                }
+            }
+
             const scoreDisplayEl = document.getElementById('teamScoreDisplay');
-            if (scoreDisplayEl) scoreDisplayEl.innerText = currentTeamStats.currentWeekScore;
+            if (scoreDisplayEl) scoreDisplayEl.innerText = formatScore(currentTeamStats.currentWeekScore);
             
             const maxScoreEl = document.getElementById('teamMaxScoreLabel');
-            if (maxScoreEl) maxScoreEl.innerText = `인당 주 최대 5점 (가산점 최대 +5점 별도 합산)`;
+            if (maxScoreEl) {
+                maxScoreEl.innerText = currentTeamStats.weightMultiplier > 1
+                    ? `원점수 ${formatScore(currentTeamStats.rawCurrentWeekScore)}점 × ${formatMultiplier(currentTeamStats.weightMultiplier)}배 적용`
+                    : `인당 주 최대 5점 (가산점 최대 +5점 별도 합산)`;
+            }
             
             const rawCountEl = document.getElementById('teamRawCountDisplay');
-            if (rawCountEl) rawCountEl.innerText = `이번 주: ${currentTeamStats.currentWeekScore}점 | 누적: ${currentTeamStats.totalCumulativeScore}점`;
+            if (rawCountEl) {
+                rawCountEl.innerText = currentTeamStats.weightMultiplier > 1
+                    ? `이번 주: ${formatScore(currentTeamStats.currentWeekScore)}점 | 누적: ${formatScore(currentTeamStats.totalCumulativeScore)}점 (원점수 ${formatScore(currentTeamStats.rawTotalCumulativeScore)})`
+                    : `이번 주: ${formatScore(currentTeamStats.currentWeekScore)}점 | 누적: ${formatScore(currentTeamStats.totalCumulativeScore)}점`;
+            }
 
             const dates = getWeekDates(window.currentWeekOffset);
             const dateGrid = document.getElementById('dateHeaderGrid');
             if (dateGrid) {
                 dateGrid.innerHTML = dates.map((d, idx) => {
-                    let colorClass = "text-slate-600";
-                    if (idx === 5) colorClass = "text-sky-600";
-                    if (idx === 6) colorClass = "text-rose-500";
+                    let colorClass = d.inChallenge ? "text-slate-600" : "text-slate-300";
+                    if (d.inChallenge && idx === 5) colorClass = "text-sky-600";
+                    if (d.inChallenge && idx === 6) colorClass = "text-rose-500";
                     return `
-                        <div class="flex flex-col items-center">
+                        <div class="flex flex-col items-center ${d.inChallenge ? '' : 'opacity-45'}">
                             <span class="${colorClass}">${d.dayName}</span>
                             <span class="text-[9px] text-slate-400 font-normal">${d.month}/${d.date}</span>
                         </div>
@@ -1038,10 +1137,11 @@
             members.forEach(member => {
                 let memberOCount = 0;
                 dates.forEach(d => {
-                    if (getMemberRecordForDate(member, d) === 'O') memberOCount++;
+                    if (d.inChallenge && getMemberRecordForDate(member, d) === 'O') memberOCount++;
                 });
 
                 let cappedBaseScore = Math.min(5, memberOCount);
+                let bungCount = getMemberBungCount(member);
                 let bonusPoints = getMemberBonusPoints(member);
 
                 const card = document.createElement('div');
@@ -1049,33 +1149,31 @@
 
                 let adminControlsHtml = '';
                 if (window.isAdminAuthenticated) {
-                    let starsHtml = '';
-                    for (let star = 1; star <= 5; star++) {
-                        const isActive = star <= bonusPoints;
-                        const starBtnClass = isActive
-                            ? "text-amber-400 drop-shadow-[0_1px_2px_rgba(245,158,11,0.45)] scale-105"
-                            : "text-slate-300 hover:text-amber-300";
-                        const starSymbol = isActive ? "★" : "☆";
-                        starsHtml += `
-                            <button type="button" onclick="setBonusPoint(${member.id}, ${star})"
-                                class="text-sm leading-none px-0.5 transition-transform active:scale-90 cursor-pointer ${starBtnClass}"
-                                title="가산점 +${star}점 설정 (재클릭 시 해제)">
-                                ${starSymbol}
-                            </button>
-                        `;
-                    }
-
+                    const minusDisabled = bungCount <= 0;
                     adminControlsHtml += `
-                        <div class="inline-flex items-center gap-0.5 bg-sky-50/95 border border-sky-200/90 px-2 py-1 rounded-xl shadow-2xs" title="별표 클릭으로 가산점 0~5점 조절">
-                            <span class="text-[10px] font-bold text-slate-500 mr-1">가산</span>
-                            ${starsHtml}
-                            <span class="text-[10px] font-extrabold ml-1 ${bonusPoints > 0 ? 'text-amber-600' : 'text-slate-400'}">+${bonusPoints}</span>
+                        <div class="inline-flex items-center gap-1 bg-sky-50/95 border border-sky-200/90 px-2 py-1 rounded-xl shadow-2xs" title="벙 2회 참석당 가산점 +1점 (최대 +5점)">
+                            <span class="text-[10px] font-bold text-slate-500 mr-0.5">벙</span>
+                            <button type="button" onclick="adjustBungCount(${member.id}, -1)"
+                                ${minusDisabled ? 'disabled' : ''}
+                                class="w-5 h-5 rounded-md flex items-center justify-center text-xs font-black transition active:scale-90 ${minusDisabled ? 'bg-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-sky-200 cursor-pointer'}"
+                                title="벙 참가 횟수 1회 감소">
+                                -
+                            </button>
+                            <span class="text-[11px] font-extrabold text-slate-800 min-w-[26px] text-center">${bungCount}회</span>
+                            <button type="button" onclick="adjustBungCount(${member.id}, 1)"
+                                class="w-5 h-5 rounded-md bg-gradient-to-br from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white flex items-center justify-center text-xs font-black shadow-2xs transition active:scale-90 cursor-pointer"
+                                title="벙 참가 횟수 1회 증가">
+                                +
+                            </button>
+                            <span class="text-[10px] font-extrabold ml-0.5 px-1.5 py-0.5 rounded-md ${bonusPoints > 0 ? 'bg-amber-100/90 text-amber-700 border border-amber-200/80' : 'text-slate-400'}">
+                                +${bonusPoints}점
+                            </span>
                         </div>
                     `;
-                } else if (bonusPoints > 0) {
+                } else if (bungCount > 0) {
                     adminControlsHtml += `
                         <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-amber-700 bg-amber-50/95 border border-amber-200 px-2 py-0.5 rounded-full shadow-2xs">
-                            <span class="text-amber-500">★</span> +${bonusPoints}점
+                            <span>🔥</span> 벙 ${bungCount}회 (+${bonusPoints}점)
                         </span>
                     `;
                 }
@@ -1111,14 +1209,19 @@
                     let content = "-";
 
                     if (val === 'O') {
-                        btnStyle = "bg-gradient-to-br from-cyan-500 to-sky-600 text-white font-black shadow-md shadow-cyan-500/30 border-cyan-300 scale-105";
+                        btnStyle = dateObj.inChallenge
+                            ? "bg-gradient-to-br from-cyan-500 to-sky-600 text-white font-black shadow-md shadow-cyan-500/30 border-cyan-300 scale-105"
+                            : "bg-slate-300 text-white font-black border-slate-300 opacity-60";
                         content = "O";
                     }
 
                     let clickAction = "";
                     let disabledClass = "";
 
-                    if (!window.isCloudConnected) {
+                    if (!dateObj.inChallenge) {
+                        clickAction = `showToast('챌린지 기간(11/23 ~ 12/18) 외 날짜입니다.', 'warn')`;
+                        disabledClass = "opacity-35 cursor-not-allowed";
+                    } else if (!window.isCloudConnected) {
                         clickAction = `showToast('⚠️ DB 연결 중입니다. 잠시 후 다시 시도해 주세요.', 'warn')`;
                         disabledClass = "opacity-60 cursor-not-allowed";
                     } else if (window.isAdminAuthenticated) {
@@ -1128,7 +1231,7 @@
                     }
 
                     daysHtml += `
-                        <button type="button" onclick="${clickAction}" title="${dateObj.month}/${dateObj.date}(${dateObj.dayName})"
+                        <button type="button" onclick="${clickAction}" title="${dateObj.month}/${dateObj.date}(${dateObj.dayName})${dateObj.inChallenge ? '' : ' - 챌린지 기간 외'}"
                             class="h-10 rounded-xl text-sm transition-all duration-150 flex items-center justify-center border ${btnStyle} ${disabledClass} active:scale-90 cursor-pointer">
                             ${content}
                         </button>
@@ -1141,7 +1244,7 @@
             });
         }
 
-        function setBonusPoint(memberId, starIndex) {
+        function adjustBungCount(memberId, delta) {
             if (!window.isAdminAuthenticated) {
                 showToast("관리자 권한이 필요합니다.", "warn");
                 return;
@@ -1155,10 +1258,13 @@
             const member = (window.teamData[window.currentTeamId] || []).find(m => m.id === memberId);
             if (!member) return;
 
-            const currentBonus = getMemberBonusPoints(member);
-            const targetStar = Math.min(5, Math.max(1, Number(starIndex) || 1));
-            const nextBonus = (currentBonus === targetStar) ? 0 : targetStar;
+            const currentBung = getMemberBungCount(member);
+            const nextBung = Math.max(0, currentBung + delta);
+            if (nextBung === currentBung) return;
 
+            const nextBonus = Math.min(5, Math.floor(nextBung / 2));
+
+            member.bungCount = nextBung;
             member.bonusPoints = nextBonus;
             member.hasBonus = nextBonus > 0;
             render();
@@ -1167,7 +1273,10 @@
                 window.saveTeamCloudData(window.currentTeamId);
             }
 
-            showToast(`${member.name} 팀원 가산점 ${nextBonus > 0 ? `+${nextBonus}점 적용` : '해제 (0점)'}`);
+            const bonusNote = nextBung >= 10
+                ? `가산점 +${nextBonus}점 (상한 도달)`
+                : `가산점 +${nextBonus}점`;
+            showToast(`${member.name} 벙 참가 ${nextBung}회 (${bonusNote})`);
         }
 
         function toggleDay(memberId, dayIndex) {
@@ -1183,6 +1292,12 @@
 
             const dates = getWeekDates(window.currentWeekOffset);
             const dateObj = dates[dayIndex];
+
+            if (!dateObj.inChallenge) {
+                showToast("챌린지 기간(11/23 ~ 12/18) 내 날짜만 기록할 수 있습니다.", "warn");
+                return;
+            }
+
             const member = (window.teamData[window.currentTeamId] || []).find(m => m.id === memberId);
             if (!member) return;
 
@@ -1198,7 +1313,6 @@
 
             showToast(`${member.name} - ${dateObj.month}/${dateObj.date} ${newVal ? "'O' 입력" : "해제됨"}`);
 
-            // 겨울 테마 컨페티 (화이트, 아이스 블루, 시안, 실버)
             if (newVal === 'O' && typeof confetti === 'function') {
                 confetti({
                     particleCount: 26,
@@ -1232,6 +1346,7 @@
                 id: Date.now() + Math.floor(Math.random() * 1000),
                 name: name,
                 records: {},
+                bungCount: 0,
                 bonusPoints: 0,
                 hasBonus: false
             });
@@ -1321,7 +1436,7 @@
                                 window.teamData = parsedData;
                                 sanitizeTeamData();
                                 render();
-                                for (let tId = 1; tId <= 6; tId++) {
+                                for (let tId = 1; tId <= TOTAL_TEAMS; tId++) {
                                     if (typeof window.saveTeamCloudData === 'function') {
                                         window.saveTeamCloudData(tId);
                                     }
@@ -1365,7 +1480,6 @@
             return String(text).replace(/[&<>"']/g, m => map[m]);
         }
 
-        // 스크립트 로드 즉시 1회 초기 렌더링 실행
         render();
     </script>
 
@@ -1376,6 +1490,7 @@
         import { getFirestore, doc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = 'mindle-run-shared-db-v2';
+        const TOTAL_TEAMS = 5;
         
         const firebaseConfig = Object.freeze({
             apiKey: "AIzaSyBFTpzML6JYHQ0h-MPIBugMQ_0ZIlYWgrg",
@@ -1417,7 +1532,7 @@
                 isCloudAvailable = true;
                 updateDbBadge(true);
 
-                for (let tId = 1; tId <= 6; tId++) {
+                for (let tId = 1; tId <= TOTAL_TEAMS; tId++) {
                     const docRef = doc(db, 'artifacts', appId, 'teams', `team_${tId}`);
                     
                     onSnapshot(docRef, (docSnap) => {
