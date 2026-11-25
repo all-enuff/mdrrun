@@ -178,7 +178,7 @@
                         <li><strong>인원수 가중치:</strong>  (최대 팀 인원 ÷ 해당 팀 인원)배율 적용<strong>(2명팀 1.5배)</strong> </li>
                         <li><strong>러닝 인정 기준:</strong> 3km 이상, 평균 페이스 8:00/km 이내(등산도 1회 인정)</li>
                         <li><strong>벙 가산점 기준:</strong> 벙 2회 참석당 가산점 <strong>+1점</strong>을 부여 (최대 +5점)</li>
-                        <li><strong>주간 인정 제한:</strong> 1인당 주 최대 <strong>5회(5점)</strong>까지만 인정되며, 가산점은 별도</li>
+                        <li><strong>주간 인정 제한:</strong> 1인당 주 최대 <strong>5회(5점)</strong>까지만 인정 (정기런 +1점 포함, 벙 가산점은 별도)</li>
                         <li><strong>제외 대상:</strong> 쇼핑몰·마트 등 실내 보행 공간 러닝은 인정 안함</li>
                         <li><strong>러닝머신 기준:</strong> 평균 페이스 <strong>8:00/km 이내</strong> 기록만 인정</li>
                         <li><strong>기록 기준:</strong> 자정을 넘어 종료해도 취침 전 시작한 날짜 기준으로 인정</li>
@@ -483,6 +483,7 @@
                     return {
                         ...m,
                         records: m.records && typeof m.records === 'object' ? m.records : {},
+                        weeklyRegularRuns: m.weeklyRegularRuns && typeof m.weeklyRegularRuns === 'object' ? m.weeklyRegularRuns : {},
                         bungCount: bungCount,
                         bonusPoints: bp,
                         hasBonus: bp > 0
@@ -545,6 +546,24 @@
         function getMemberBonusPoints(member) {
             const bungCount = getMemberBungCount(member);
             return Math.min(5, Math.floor(bungCount / 2));
+        }
+
+        function getWeekMondayKeyFromDate(dateObj) {
+            const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+            const day = d.getDay();
+            const distanceToMon = day === 0 ? -6 : 1 - day;
+            d.setDate(d.getDate() + distanceToMon);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function getWeekKeyForOffset(weekOffset = window.currentWeekOffset) {
+            const dates = getWeekDates(weekOffset);
+            return dates[0].fullDateStr;
+        }
+
+        function isMemberRegularRunChecked(member, weekKey) {
+            if (!member || !member.weeklyRegularRuns || typeof member.weeklyRegularRuns !== 'object') return false;
+            return Boolean(member.weeklyRegularRuns[weekKey]);
         }
 
         function isWithinChallengePeriod(dateObjOrDate) {
@@ -912,6 +931,7 @@
 
             const teamMaxScore = memberCount * 5; 
 
+            const currentWeekKey = getWeekKeyForOffset(window.currentWeekOffset);
             let currentWeekRawCount = 0; 
             let memberWeekScores = {};
 
@@ -923,10 +943,11 @@
                 dates.forEach(dObj => {
                     if (dObj.inChallenge && getMemberRecordForDate(m, dObj) === 'O') count++;
                 });
-                currentWeekRawCount += count;
+                const regRunPoint = isMemberRegularRunChecked(m, currentWeekKey) ? 1 : 0;
+                currentWeekRawCount += (count + regRunPoint);
                 
                 let bonus = getMemberBonusPoints(m);
-                let cappedCount = Math.min(5, count) + bonus;
+                let cappedCount = Math.min(5, count + regRunPoint) + bonus;
                 memberWeekScores[m.id] = cappedCount;
             });
 
@@ -937,19 +958,27 @@
 
             let allWeeksMap = {}; 
             members.forEach(m => {
-                if (!m || !m.records) return;
-                Object.entries(m.records).forEach(([dateStr, val]) => {
-                    if (val === 'O') {
-                        let d = new Date(dateStr);
-                        if (!isNaN(d.getTime()) && isWithinChallengePeriod(d)) {
-                            let day = d.getDay();
-                            let diff = d.getDate() - day + (day === 0 ? -6 : 1);
-                            let mon = new Date(d.setDate(diff));
-                            let weekKey = `${mon.getFullYear()}-${mon.getMonth()+1}-${mon.getDate()}_${m.id}`;
+                if (!m) return;
+                if (m.records) {
+                    Object.entries(m.records).forEach(([dateStr, val]) => {
+                        if (val === 'O') {
+                            let d = new Date(dateStr);
+                            if (!isNaN(d.getTime()) && isWithinChallengePeriod(d)) {
+                                const monKey = getWeekMondayKeyFromDate(d);
+                                let weekKey = `${monKey}_${m.id}`;
+                                allWeeksMap[weekKey] = (allWeeksMap[weekKey] || 0) + 1;
+                            }
+                        }
+                    });
+                }
+                if (m.weeklyRegularRuns && typeof m.weeklyRegularRuns === 'object') {
+                    Object.entries(m.weeklyRegularRuns).forEach(([monKey, isChecked]) => {
+                        if (isChecked) {
+                            let weekKey = `${monKey}_${m.id}`;
                             allWeeksMap[weekKey] = (allWeeksMap[weekKey] || 0) + 1;
                         }
-                    }
-                });
+                    });
+                }
             });
 
             // 가중치 적용 전 원점수 (누적)
@@ -1190,13 +1219,18 @@
                 return;
             }
 
+            const currentWeekKey = getWeekKeyForOffset(window.currentWeekOffset);
+            const hasChallengeDateInWeek = dates.some(d => d.inChallenge);
+
             members.forEach(member => {
                 let memberOCount = 0;
                 dates.forEach(d => {
                     if (d.inChallenge && getMemberRecordForDate(member, d) === 'O') memberOCount++;
                 });
 
-                let cappedBaseScore = Math.min(5, memberOCount);
+                const isRegRun = isMemberRegularRunChecked(member, currentWeekKey);
+                const regRunPoint = isRegRun ? 1 : 0;
+                let cappedBaseScore = Math.min(5, memberOCount + regRunPoint);
                 let bungCount = getMemberBungCount(member);
                 let bonusPoints = getMemberBonusPoints(member);
 
@@ -1205,6 +1239,20 @@
 
                 let adminControlsHtml = '';
                 if (window.isAdminAuthenticated) {
+                    const regDisabled = !hasChallengeDateInWeek;
+                    adminControlsHtml += `
+                        <button type="button" onclick="toggleWeeklyRegularRun(${member.id})"
+                            ${regDisabled ? 'disabled' : ''}
+                            title="이번 주 정기런 참석 시 주간 횟수 점수 +1점 (주 최대 5점 내 포함)"
+                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-xl border text-[10px] font-extrabold transition active:scale-95 shadow-2xs ${regDisabled ? 'opacity-40 cursor-not-allowed bg-slate-100 border-slate-200 text-slate-400' : (isRegRun ? 'bg-emerald-50/95 border-emerald-300 text-emerald-800 cursor-pointer' : 'bg-white/95 border-sky-200/90 text-slate-500 hover:bg-sky-50 cursor-pointer')}">
+                            <span>정기런</span>
+                            <span class="w-7 h-4 rounded-full p-0.5 transition-colors flex items-center ${isRegRun ? 'bg-emerald-500 justify-end' : 'bg-slate-300 justify-start'}">
+                                <span class="w-3 h-3 rounded-full bg-white shadow-xs block"></span>
+                            </span>
+                            <span class="${isRegRun ? 'text-emerald-700 font-black' : 'text-slate-400'}">${isRegRun ? '+1' : 'OFF'}</span>
+                        </button>
+                    `;
+
                     const minusDisabled = bungCount <= 0;
                     adminControlsHtml += `
                         <div class="inline-flex items-center gap-1 bg-sky-50/95 border border-sky-200/90 px-2 py-1 rounded-xl shadow-2xs" title="벙 2회 참석당 가산점 +1점 (최대 +5점)">
@@ -1226,12 +1274,21 @@
                             </span>
                         </div>
                     `;
-                } else if (bungCount > 0) {
-                    adminControlsHtml += `
-                        <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-amber-700 bg-amber-50/95 border border-amber-200 px-2 py-0.5 rounded-full shadow-2xs">
-                            <span>🔥</span> 벙 ${bungCount}회 (+${bonusPoints}점)
-                        </span>
-                    `;
+                } else {
+                    if (isRegRun) {
+                        adminControlsHtml += `
+                            <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-700 bg-emerald-50/95 border border-emerald-200 px-2 py-0.5 rounded-full shadow-2xs" title="이번 주 정기런 참석 (+1점, 주 최대 5점 내 포함)">
+                                <span>🏃</span> 정기런 (+1)
+                            </span>
+                        `;
+                    }
+                    if (bungCount > 0) {
+                        adminControlsHtml += `
+                            <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-amber-700 bg-amber-50/95 border border-amber-200 px-2 py-0.5 rounded-full shadow-2xs">
+                                <span>🔥</span> 벙 ${bungCount}회 (+${bonusPoints}점)
+                            </span>
+                        `;
+                    }
                 }
 
                 if (window.isSuperAdmin) {
@@ -1298,6 +1355,47 @@
                 card.innerHTML = headerHtml + daysHtml;
                 listEl.appendChild(card);
             });
+        }
+
+        function toggleWeeklyRegularRun(memberId) {
+            if (!window.isAdminAuthenticated) {
+                showToast("관리자 권한이 필요합니다.", "warn");
+                return;
+            }
+
+            if (typeof window.checkRealtimeConnection === 'function' && !window.checkRealtimeConnection()) {
+                showToast("⚠️ DB 연결 상태를 확인 후 시도해 주세요.", "warn");
+                return;
+            }
+
+            const dates = getWeekDates(window.currentWeekOffset);
+            if (!dates.some(d => d.inChallenge)) {
+                showToast("챌린지 기간(11/23 ~ 12/18) 내 주차만 체크할 수 있습니다.", "warn");
+                return;
+            }
+
+            const weekKey = getWeekKeyForOffset(window.currentWeekOffset);
+            const member = (window.teamData[window.currentTeamId] || []).find(m => m.id === memberId);
+            if (!member) return;
+
+            if (!member.weeklyRegularRuns || typeof member.weeklyRegularRuns !== 'object') {
+                member.weeklyRegularRuns = {};
+            }
+
+            const nextState = !Boolean(member.weeklyRegularRuns[weekKey]);
+            if (nextState) {
+                member.weeklyRegularRuns[weekKey] = true;
+            } else {
+                delete member.weeklyRegularRuns[weekKey];
+            }
+
+            render();
+
+            if (typeof window.saveTeamCloudData === 'function') {
+                window.saveTeamCloudData(window.currentTeamId);
+            }
+
+            showToast(`${member.name} 이번 주 정기런 ${nextState ? 'ON (+1점, 주 5점 한도 내 포함)' : 'OFF'}`);
         }
 
         function adjustBungCount(memberId, delta) {
@@ -1445,6 +1543,7 @@
                 id: Date.now() + Math.floor(Math.random() * 1000),
                 name: name,
                 records: {},
+                weeklyRegularRuns: {},
                 bungCount: 0,
                 bonusPoints: 0,
                 hasBonus: false
