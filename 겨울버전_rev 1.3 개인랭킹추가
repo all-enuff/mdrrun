@@ -210,7 +210,7 @@
                         <li><strong>인원수 가중치:</strong>  (최대 팀 인원 ÷ 해당 팀 인원)배율 적용<strong>(2명팀 1.5배)</strong> </li>
                         <li><strong>러닝 인정 기준:</strong> 3km 이상, 평균 페이스 8:00/km 이내(등산도 1회 인정)</li>
                         <li><strong>벙 가산점 기준:</strong> 벙 2회 참석당 가산점 <strong>+1점</strong>을 부여 (최대 +5점)</li>
-                        <li><strong>주간 인정 제한:</strong> 1인당 주 최대 <strong>5회(5점)</strong>까지만 인정 (정기런 +1점 포함)</li>
+                        <li><strong>주간 인정 제한:</strong> 1인당 주 최대 <strong>5회(5점)</strong>까지만 인정 (정기행사 +1점 포함)</li>
                         <li><strong>제외 대상:</strong> 쇼핑몰·마트 등 실내 보행 공간 러닝은 인정 안함</li>
                         <li><strong>러닝머신 기준:</strong> 평균 페이스 <strong>8:00/km 이내</strong> 기록만 인정</li>
                         <li><strong>기록 기준:</strong> 자정을 넘어 종료해도 취침 전 시작한 날짜 기준으로 인정</li>
@@ -1422,8 +1422,8 @@
                     : `이번주 ${runner.weekScore}점`;
 
                 const runCountText = isWeekMode
-                    ? `이번주 러닝 ${runner.weekRunCount}회${runner.weekRegRun ? ' + 정기런' : ''}`
-                    : `누적 러닝 ${runner.totalRunCount}회${runner.totalRegRunCount > 0 ? ` · 정기런 ${runner.totalRegRunCount}회` : ''}`;
+                    ? `이번주 러닝 ${runner.weekRunCount}회${runner.weekRegRun ? ' + 정기행사' : ''}`
+                    : `누적 러닝 ${runner.totalRunCount}회${runner.totalRegRunCount > 0 ? ` · 정기행사 ${runner.totalRegRunCount}회` : ''}`;
 
                 const bonusTagHtml = runner.bonusPoints > 0
                     ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md">벙 ${runner.bungCount}회(+${runner.bonusPoints})</span>`
@@ -1555,9 +1555,9 @@
                     adminControlsHtml += `
                         <button type="button" onclick="toggleWeeklyRegularRun(${member.id})"
                             ${regDisabled ? 'disabled' : ''}
-                            title="이번 주 정기런 참석 시 주간 횟수 점수 +1점 (주 최대 5점 내 포함)"
+                            title="이번 주 정기행사 참석 시 주간 횟수 점수 +1점 (주 최대 5점 내 포함)"
                             class="inline-flex items-center gap-1.5 px-2 py-1 rounded-xl border text-[10px] font-extrabold transition active:scale-95 shadow-2xs ${regDisabled ? 'opacity-40 cursor-not-allowed bg-slate-100 border-slate-200 text-slate-400' : (isRegRun ? 'bg-emerald-50/95 border-emerald-300 text-emerald-800 cursor-pointer' : 'bg-white/95 border-sky-200/90 text-slate-500 hover:bg-sky-50 cursor-pointer')}">
-                            <span>정기런</span>
+                            <span>정기행사</span>
                             <span class="w-7 h-4 rounded-full p-0.5 transition-colors flex items-center ${isRegRun ? 'bg-emerald-500 justify-end' : 'bg-slate-300 justify-start'}">
                                 <span class="w-3 h-3 rounded-full bg-white shadow-xs block"></span>
                             </span>
@@ -1589,8 +1589,8 @@
                 } else {
                     if (isRegRun) {
                         adminControlsHtml += `
-                            <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-700 bg-emerald-50/95 border border-emerald-200 px-2 py-0.5 rounded-full shadow-2xs" title="이번 주 정기런 참석 (+1점, 주 최대 5점 내 포함)">
-                                <span>🏃</span> 정기런 (+1)
+                            <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-700 bg-emerald-50/95 border border-emerald-200 px-2 py-0.5 rounded-full shadow-2xs" title="이번 주 정기행사 참석 (+1점, 주 최대 5점 내 포함)">
+                                <span>🏃</span> 정기행사 (+1)
                             </span>
                         `;
                     }
@@ -1707,7 +1707,7 @@
                 window.saveTeamCloudData(window.currentTeamId);
             }
 
-            showToast(`${member.name} 이번 주 정기런 ${nextState ? 'ON (+1점, 주 5점 한도 내 포함)' : 'OFF'}`);
+            showToast(`${member.name} 이번 주 정기행사 ${nextState ? 'ON (+1점, 주 5점 한도 내 포함)' : 'OFF'}`);
         }
 
         function adjustBungCount(memberId, delta) {
