@@ -132,10 +132,10 @@
             
             <!-- VIEW 1: 랭킹 보드 화면 -->
             <section id="viewLeaderboard" class="space-y-4">
-                <!-- 1위 팀 배너 카드 (소복이 쌓인 눈 캡 & 빙하 그라데이션) -->
+                <!-- 1위 배너 카드 (팀/개인 탭에 따라 동적 변경) -->
                 <div id="topTeamCard" class="snow-cap-top bg-gradient-to-br from-sky-800 via-cyan-800 to-slate-900 rounded-2xl p-4 pt-5 text-white shadow-lg shadow-cyan-950/25 border border-cyan-300/40 relative overflow-hidden flex items-center justify-between min-h-[108px]">
                     <div class="z-10 flex-1 min-w-0 pr-3 space-y-1.5">
-                        <div class="flex items-center gap-1.5 flex-wrap">
+                        <div id="topTeamBadgeRow" class="flex items-center gap-1.5 flex-wrap">
                             <span id="topTeamStatusBadge" class="bg-cyan-200 text-sky-950 text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block shadow-sm">
                                 ❄️ 선두 경쟁 중
                             </span>
@@ -156,8 +156,18 @@
                     <i class="fa-solid fa-icicles absolute top-0 right-12 text-3xl text-white/25 pointer-events-none"></i>
                 </div>
 
-                <!-- 실시간 랭킹 리스트 카드 -->
-                <div class="frost-card rounded-2xl p-4 space-y-3">
+                <!-- ✨ 팀 랭킹 / 개인 랭킹 전환 스위치 ✨ -->
+                <div class="flex bg-sky-200/60 border border-sky-200/90 p-1 rounded-2xl text-xs font-bold backdrop-blur-sm shadow-2xs">
+                    <button type="button" id="subTabTeamRankBtn" onclick="switchLeaderboardMode('team')" class="flex-1 py-2 rounded-xl text-center transition bg-gradient-to-r from-sky-700 to-cyan-700 text-white shadow-sm font-extrabold cursor-pointer flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-people-group"></i> 팀별 랭킹
+                    </button>
+                    <button type="button" id="subTabIndividualRankBtn" onclick="switchLeaderboardMode('individual')" class="flex-1 py-2 rounded-xl text-center transition text-sky-900/75 hover:text-sky-950 font-bold cursor-pointer flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-person-running"></i> 개인 랭킹
+                    </button>
+                </div>
+
+                <!-- 실시간 팀 랭킹 리스트 카드 -->
+                <div id="teamLeaderboardCard" class="frost-card rounded-2xl p-4 space-y-3">
                     <div class="flex justify-between items-center pb-2 border-b border-sky-200/70">
                         <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
                             <i class="fa-solid fa-snowflake text-cyan-600"></i> 민들레런 팀별 실시간 랭킹
@@ -169,6 +179,28 @@
                     <div id="leaderboardList" class="space-y-2.5"></div>
                 </div>
 
+                <!-- ✨ 실시간 개인 랭킹 리스트 카드 ✨ -->
+                <div id="individualLeaderboardCard" class="frost-card rounded-2xl p-4 space-y-3 hidden">
+                    <div class="flex justify-between items-center pb-2 border-b border-sky-200/70 gap-2">
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-medal text-cyan-600"></i> 개인별 실시간 랭킹
+                            </h3>
+                            <span id="individualCountBadge" class="text-[11px] font-bold text-sky-700 bg-sky-100/80 px-2 py-0.5 rounded-full border border-sky-200/80">총 0명</span>
+                        </div>
+                        <!-- 누적 / 이번 주 기준 토글 -->
+                        <div class="flex bg-sky-100/90 border border-sky-200 p-0.5 rounded-lg text-[10px] font-bold">
+                            <button type="button" id="indBasisTotalBtn" onclick="switchIndividualBasis('total')" class="px-2 py-1 rounded-md bg-white text-sky-900 shadow-2xs font-extrabold transition cursor-pointer">
+                                전체 누적
+                            </button>
+                            <button type="button" id="indBasisWeekBtn" onclick="switchIndividualBasis('week')" class="px-2 py-1 rounded-md text-slate-500 hover:text-sky-800 transition cursor-pointer">
+                                이번 주
+                            </button>
+                        </div>
+                    </div>
+                    <div id="individualLeaderboardList" class="space-y-2"></div>
+                </div>
+
                 <!-- 겨울 챌린지 규칙 안내 카드 -->
                 <div class="bg-gradient-to-br from-sky-100/80 to-cyan-50/90 backdrop-blur-sm border border-sky-200/90 rounded-2xl p-3.5 text-xs text-sky-950 space-y-1.5 shadow-sm">
                     <p class="font-bold flex items-center gap-1.5 text-sky-900">
@@ -178,7 +210,7 @@
                         <li><strong>인원수 가중치:</strong>  (최대 팀 인원 ÷ 해당 팀 인원)배율 적용<strong>(2명팀 1.5배)</strong> </li>
                         <li><strong>러닝 인정 기준:</strong> 3km 이상, 평균 페이스 8:00/km 이내(등산도 1회 인정)</li>
                         <li><strong>벙 가산점 기준:</strong> 벙 2회 참석당 가산점 <strong>+1점</strong>을 부여 (최대 +5점)</li>
-                        <li><strong>주간 인정 제한:</strong> 1인당 주 최대 <strong>5회(5점)</strong>까지만 인정 (정기런 +1점 포함, 벙 가산점은 별도)</li>
+                        <li><strong>주간 인정 제한:</strong> 1인당 주 최대 <strong>5회(5점)</strong>까지만 인정 (정기런 +1점 포함)</li>
                         <li><strong>제외 대상:</strong> 쇼핑몰·마트 등 실내 보행 공간 러닝은 인정 안함</li>
                         <li><strong>러닝머신 기준:</strong> 평균 페이스 <strong>8:00/km 이내</strong> 기록만 인정</li>
                         <li><strong>기록 기준:</strong> 자정을 넘어 종료해도 취침 전 시작한 날짜 기준으로 인정</li>
@@ -231,7 +263,7 @@
             <input type="file" id="restoreFileInput" accept=".json" class="hidden" onchange="handleRestoreFile(event)">
         </footer>
 
-        <!-- 인앱 관리자 비밀번호 모달 (샌드박스 prompt 대체) -->
+        <!-- 인앱 관리자 비밀번호 모달 -->
         <div id="adminAuthModal" class="hidden absolute inset-0 bg-slate-950/70 backdrop-blur-sm z-40 flex items-center justify-center p-5">
             <div class="w-full max-w-xs bg-gradient-to-b from-slate-900 via-sky-950 to-slate-900 border border-cyan-300/40 rounded-3xl p-5 text-white shadow-2xl space-y-4">
                 <div class="flex items-center gap-2.5">
@@ -259,7 +291,7 @@
             </div>
         </div>
 
-        <!-- 인앱 확인 모달 (샌드박스 confirm 대체) -->
+        <!-- 인앱 확인 모달 -->
         <div id="confirmModal" class="hidden absolute inset-0 bg-slate-950/70 backdrop-blur-sm z-40 flex items-center justify-center p-5">
             <div class="w-full max-w-xs bg-gradient-to-b from-slate-900 via-sky-950 to-slate-900 border border-cyan-300/40 rounded-3xl p-5 text-white shadow-2xl space-y-4">
                 <div class="flex items-start gap-2.5">
@@ -287,7 +319,7 @@
         <i class="fa-solid fa-snowflake text-cyan-300" id="toastIcon"></i> <span id="toastText">저장 완료</span>
     </div>
 
-    <!-- 보안 보호 스크립트 (우클릭 및 F12/개발자도구 단축키 차단 - 클릭/입력 간섭 없음) -->
+    <!-- 보안 보호 스크립트 -->
     <script>
         (function initAntiInspectionProtection() {
             document.addEventListener('contextmenu', function (e) {
@@ -327,7 +359,7 @@
         })();
     </script>
 
-    <!-- 0. 눈 내리는 애니메이션 스크립트 (배경 & 앱 내부 파티클) -->
+    <!-- 0. 눈 내리는 애니메이션 스크립트 -->
     <script>
         (function initWinterSnowfall() {
             function createSnowSystem(canvasId, options) {
@@ -433,6 +465,8 @@
         window.isCloudConnected = false; 
         window.currentWeekOffset = 0;
         window.activeTab = 'leaderboard'; 
+        window.leaderboardMode = 'team'; // 'team' | 'individual'
+        window.individualBasis = 'total'; // 'total' | 'week'
         window.currentTeamId = 1; 
         window.teamData = { 1: [], 2: [], 3: [], 4: [], 5: [] };
         window.teamNames = { 1: '', 2: '', 3: '', 4: '', 5: '' };
@@ -758,6 +792,18 @@
             render();
         }
 
+        // ✨ 랭킹보드 서브 탭 전환 (팀별 랭킹 vs 개인 랭킹)
+        function switchLeaderboardMode(mode) {
+            window.leaderboardMode = mode;
+            render();
+        }
+
+        // ✨ 개인 랭킹 기준 전환 (전체 누적 vs 이번 주)
+        function switchIndividualBasis(basis) {
+            window.individualBasis = basis;
+            render();
+        }
+
         function selectTeam(teamId) {
             window.currentTeamId = teamId;
             renderTeamSelector();
@@ -895,7 +941,8 @@
             }
 
             const rankings = getAllTeamRankings();
-            renderLeaderboard(rankings);
+            const individualRankings = getAllIndividualRankings();
+            renderLeaderboard(rankings, individualRankings);
             renderTeamDetail(rankings);
         }
 
@@ -924,7 +971,6 @@
             const memberCount = members.length;
             const referenceMaxMembers = maxTeamMemberCount !== null ? maxTeamMemberCount : getMaxTeamMemberCount();
 
-            // 인원수 가중치 계산: 기준 최대 인원 / 해당 팀 인원 (예: 3명 기준 2명 팀이면 1.5배)
             const weightMultiplier = (memberCount > 0 && referenceMaxMembers > memberCount)
                 ? (referenceMaxMembers / memberCount)
                 : 1;
@@ -951,9 +997,7 @@
                 memberWeekScores[m.id] = cappedCount;
             });
 
-            // 가중치 적용 전 원점수 (이번 주)
             let rawCurrentWeekScore = Object.values(memberWeekScores).reduce((a, b) => a + b, 0);
-            // 가중치 적용 최종 점수 (이번 주)
             let currentWeekScore = Math.round(rawCurrentWeekScore * weightMultiplier * 100) / 100;
 
             let allWeeksMap = {}; 
@@ -981,7 +1025,6 @@
                 }
             });
 
-            // 가중치 적용 전 원점수 (누적)
             let rawTotalCumulativeScore = 0;
             members.forEach(m => {
                 if (!m) return;
@@ -995,7 +1038,6 @@
                 rawTotalCumulativeScore += (memberTotal + bonus);
             });
 
-            // 가중치 적용 최종 점수 (누적)
             let totalCumulativeScore = Math.round(rawTotalCumulativeScore * weightMultiplier * 100) / 100;
 
             return {
@@ -1042,114 +1084,384 @@
             return rankings;
         }
 
-        function renderLeaderboard(rankings) {
+        // ✨ 전체 개인 랭킹 계산 함수
+        function getAllIndividualRankings() {
+            sanitizeTeamData();
+            const dates = getWeekDates(window.currentWeekOffset);
+            const currentWeekKey = getWeekKeyForOffset(window.currentWeekOffset);
+            const list = [];
+
+            for (let tId = 1; tId <= TOTAL_TEAMS; tId++) {
+                const members = window.teamData[tId] || [];
+                members.forEach(m => {
+                    if (!m || typeof m !== 'object') return;
+
+                    // 1) 이번 주 점수 계산
+                    let weekRunCount = 0;
+                    dates.forEach(dObj => {
+                        if (dObj.inChallenge && getMemberRecordForDate(m, dObj) === 'O') {
+                            weekRunCount++;
+                        }
+                    });
+                    const weekRegRun = isMemberRegularRunChecked(m, currentWeekKey) ? 1 : 0;
+                    const weekBaseScore = Math.min(5, weekRunCount + weekRegRun);
+
+                    // 2) 전체 누적 점수 & 총 러닝 인증 횟수 계산
+                    const weeklyMap = {};
+                    let totalRunCount = 0;
+                    let totalRegRunCount = 0;
+
+                    if (m.records && typeof m.records === 'object') {
+                        Object.entries(m.records).forEach(([dateStr, val]) => {
+                            if (val === 'O') {
+                                const d = new Date(dateStr);
+                                if (!isNaN(d.getTime()) && isWithinChallengePeriod(d)) {
+                                    totalRunCount++;
+                                    const monKey = getWeekMondayKeyFromDate(d);
+                                    weeklyMap[monKey] = (weeklyMap[monKey] || 0) + 1;
+                                }
+                            }
+                        });
+                    }
+
+                    if (m.weeklyRegularRuns && typeof m.weeklyRegularRuns === 'object') {
+                        Object.entries(m.weeklyRegularRuns).forEach(([monKey, isChecked]) => {
+                            if (isChecked) {
+                                totalRegRunCount++;
+                                weeklyMap[monKey] = (weeklyMap[monKey] || 0) + 1;
+                            }
+                        });
+                    }
+
+                    let cumulativeBaseScore = 0;
+                    Object.values(weeklyMap).forEach(cnt => {
+                        cumulativeBaseScore += Math.min(5, cnt);
+                    });
+
+                    const bungCount = getMemberBungCount(m);
+                    const bonusPoints = getMemberBonusPoints(m);
+
+                    const totalScore = cumulativeBaseScore + bonusPoints;
+                    const weekScore = weekBaseScore + bonusPoints;
+
+                    list.push({
+                        memberId: m.id,
+                        name: m.name || '이름없음',
+                        teamId: tId,
+                        teamName: getTeamDisplayName(tId),
+                        totalScore,
+                        cumulativeBaseScore,
+                        weekScore,
+                        weekBaseScore,
+                        weekRunCount,
+                        weekRegRun,
+                        totalRunCount,
+                        totalRegRunCount,
+                        bungCount,
+                        bonusPoints
+                    });
+                });
+            }
+
+            const isWeekMode = window.individualBasis === 'week';
+
+            list.sort((a, b) => {
+                const primaryA = isWeekMode ? a.weekScore : a.totalScore;
+                const primaryB = isWeekMode ? b.weekScore : b.totalScore;
+                if (primaryB !== primaryA) return primaryB - primaryA;
+
+                const secondaryA = isWeekMode ? a.totalScore : a.weekScore;
+                const secondaryB = isWeekMode ? b.totalScore : b.weekScore;
+                if (secondaryB !== secondaryA) return secondaryB - secondaryA;
+
+                const runA = isWeekMode ? a.weekRunCount : a.totalRunCount;
+                const runB = isWeekMode ? b.weekRunCount : b.totalRunCount;
+                if (runB !== runA) return runB - runA;
+
+                return b.bungCount - a.bungCount;
+            });
+
+            for (let i = 0; i < list.length; i++) {
+                if (i > 0) {
+                    const prev = list[i - 1];
+                    const curr = list[i];
+                    const scorePrev = isWeekMode ? prev.weekScore : prev.totalScore;
+                    const scoreCurr = isWeekMode ? curr.weekScore : curr.totalScore;
+                    const runPrev = isWeekMode ? prev.weekRunCount : prev.totalRunCount;
+                    const runCurr = isWeekMode ? curr.weekRunCount : curr.totalRunCount;
+
+                    if (scoreCurr === scorePrev && runCurr === runPrev && curr.bungCount === prev.bungCount) {
+                        curr.rank = prev.rank;
+                    } else {
+                        curr.rank = i + 1;
+                    }
+                } else {
+                    list[i].rank = 1;
+                }
+            }
+
+            return list;
+        }
+
+        function renderLeaderboard(rankings, individualRankings) {
             const nameEl = document.getElementById('topTeamName');
             const scoreEl = document.getElementById('topTeamScore');
+            const badgeRow = document.getElementById('topTeamBadgeRow');
             const statusBadge = document.getElementById('topTeamStatusBadge');
 
-            if (!rankings || rankings.length === 0) {
-                if (nameEl) nameEl.innerText = "1팀";
-                return;
-            }
-            
-            const topTeams = rankings.filter(r => r.rank === 1);
-            let topTeamNamesStr = topTeams.map(t => getTeamDisplayName(t.teamId)).join(', ');
+            const subTeamBtn = document.getElementById('subTabTeamRankBtn');
+            const subIndBtn = document.getElementById('subTabIndividualRankBtn');
+            const teamCard = document.getElementById('teamLeaderboardCard');
+            const indCard = document.getElementById('individualLeaderboardCard');
 
-            if (topTeams.length === 1) {
-                if (nameEl) nameEl.innerText = topTeamNamesStr;
-                if (statusBadge) {
-                    statusBadge.innerText = "❄️ 빙판 위 단독 질주 중";
-                    statusBadge.className = "bg-cyan-300 text-sky-950 text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block shadow-sm";
+            const isIndividual = window.leaderboardMode === 'individual';
+
+            // 서브 탭 버튼 스타일 & 카드 토글
+            if (subTeamBtn && subIndBtn && teamCard && indCard) {
+                if (isIndividual) {
+                    subIndBtn.className = "flex-1 py-2 rounded-xl text-center transition bg-gradient-to-r from-sky-700 to-cyan-700 text-white shadow-sm font-extrabold cursor-pointer flex items-center justify-center gap-1.5";
+                    subTeamBtn.className = "flex-1 py-2 rounded-xl text-center transition text-sky-900/75 hover:text-sky-950 font-bold cursor-pointer flex items-center justify-center gap-1.5";
+                    teamCard.classList.add('hidden');
+                    indCard.classList.remove('hidden');
+                } else {
+                    subTeamBtn.className = "flex-1 py-2 rounded-xl text-center transition bg-gradient-to-r from-sky-700 to-cyan-700 text-white shadow-sm font-extrabold cursor-pointer flex items-center justify-center gap-1.5";
+                    subIndBtn.className = "flex-1 py-2 rounded-xl text-center transition text-sky-900/75 hover:text-sky-950 font-bold cursor-pointer flex items-center justify-center gap-1.5";
+                    indCard.classList.add('hidden');
+                    teamCard.classList.remove('hidden');
+                }
+            }
+
+            // 1) 상단 1위 배너 업데이트
+            if (isIndividual) {
+                const isWeekMode = window.individualBasis === 'week';
+                // 개인 랭킹에서는 상단 1위 상태 뱃지 숨김 처리
+                if (badgeRow) badgeRow.classList.add('hidden');
+
+                if (!individualRankings || individualRankings.length === 0) {
+                    if (nameEl) nameEl.innerText = "등록된 러너 없음";
+                    if (scoreEl) scoreEl.innerText = "운동기록 탭에서 팀원을 추가해 주세요";
+                } else {
+                    const topRunners = individualRankings.filter(r => r.rank === 1);
+                    const topNamesStr = topRunners.map(r => `${r.name}(${r.teamName})`).join(', ');
+                    if (nameEl) nameEl.innerText = topNamesStr;
+
+                    const topFirst = topRunners[0];
+                    if (scoreEl) {
+                        scoreEl.innerText = isWeekMode
+                            ? `이번 주 ${topFirst.weekScore}점 (총 누적: ${topFirst.totalScore}점 · 러닝 ${topFirst.totalRunCount}회)`
+                            : `총 누적 ${topFirst.totalScore}점 (이번 주: ${topFirst.weekScore}점 · 러닝 ${topFirst.totalRunCount}회)`;
+                    }
                 }
             } else {
-                if (nameEl) nameEl.innerText = topTeamNamesStr;
-                if (statusBadge) {
-                    statusBadge.innerText = "⚔️ 설원 선두 경쟁 중";
-                    statusBadge.className = "bg-white text-sky-950 text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block shadow-sm";
+                if (badgeRow) badgeRow.classList.remove('hidden');
+
+                if (!rankings || rankings.length === 0) {
+                    if (nameEl) nameEl.innerText = "1팀";
+                } else {
+                    const topTeams = rankings.filter(r => r.rank === 1);
+                    let topTeamNamesStr = topTeams.map(t => getTeamDisplayName(t.teamId)).join(', ');
+
+                    if (topTeams.length === 1) {
+                        if (nameEl) nameEl.innerText = topTeamNamesStr;
+                        if (statusBadge) {
+                            statusBadge.innerText = "❄️ 빙판 위 단독 질주 중";
+                            statusBadge.className = "bg-cyan-300 text-sky-950 text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block shadow-sm";
+                        }
+                    } else {
+                        if (nameEl) nameEl.innerText = topTeamNamesStr;
+                        if (statusBadge) {
+                            statusBadge.innerText = "⚔️ 설원 선두 경쟁 중";
+                            statusBadge.className = "bg-white text-sky-950 text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block shadow-sm";
+                        }
+                    }
+
+                    if (scoreEl) {
+                        scoreEl.innerText = `총 점수 ${formatScore(rankings[0].totalCumulativeScore)}점 (이번 주: ${formatScore(rankings[0].currentWeekScore)}점)`;
+                    }
                 }
             }
 
-            if (scoreEl) {
-                scoreEl.innerText = `총 점수 ${formatScore(rankings[0].totalCumulativeScore)}점 (이번 주: ${formatScore(rankings[0].currentWeekScore)}점)`;
+            // 2) 팀별 랭킹 리스트 렌더링
+            const listEl = document.getElementById('leaderboardList');
+            if (listEl && rankings) {
+                listEl.innerHTML = '';
+
+                rankings.forEach((item) => {
+                    const rank = item.rank;
+                    let medalHtml = `<span class="w-6 text-center text-sm font-bold text-slate-400">${rank}위</span>`;
+                    let bgStyle = "bg-white/70 border-sky-100/90 hover:bg-white/95";
+
+                    if (rank === 1) {
+                        medalHtml = `<span class="text-base font-bold text-sky-800">🥇 ${rank}위</span>`;
+                        bgStyle = "bg-gradient-to-r from-cyan-100/80 via-sky-50/90 to-white border-cyan-300 shadow-sm shadow-cyan-900/5";
+                    } else if (rank === 2) {
+                        medalHtml = `<span class="text-base font-bold text-slate-600">🥈 ${rank}위</span>`;
+                        bgStyle = "bg-gradient-to-r from-slate-100/90 to-sky-50/60 border-slate-300/80";
+                    } else if (rank === 3) {
+                        medalHtml = `<span class="text-base font-bold text-cyan-700">🥉 ${rank}위</span>`;
+                        bgStyle = "bg-gradient-to-r from-sky-100/60 to-white/90 border-sky-200/80";
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = `p-3.5 rounded-xl border flex flex-col gap-2.5 cursor-pointer hover:scale-[1.01] transition backdrop-blur-sm ${bgStyle}`;
+                    card.onclick = () => {
+                        selectTeam(item.teamId);
+                        switchTab('team');
+                    };
+
+                    let membersHtml = '';
+                    if (item.members && item.members.length > 0) {
+                        membersHtml = item.members.map(m => {
+                            const bungCount = getMemberBungCount(m);
+                            const bonus = getMemberBonusPoints(m);
+                            const bonusBadge = bonus > 0
+                                ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-600 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md" title="벙 ${bungCount}회 참석 가산점 +${bonus}점">★ +${bonus}</span>`
+                                : '';
+                            return `
+                                <span class="inline-flex items-center gap-1 bg-white/95 text-slate-700 px-2.5 py-1 rounded-lg border border-sky-200/80 shadow-2xs font-semibold text-xs">
+                                    <i class="fa-solid fa-user text-cyan-600 text-[10px]"></i> ${escapeHtml(m.name)} ${bonusBadge}
+                                </span>
+                            `;
+                        }).join(' ');
+                    } else {
+                        membersHtml = `<span class="text-xs text-slate-400 italic">등록된 팀원 없음</span>`;
+                    }
+
+                    const weightBadgeHtml = item.weightMultiplier > 1
+                        ? `<span class="inline-flex items-center text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-1.5 py-0.2 rounded-md ml-1" title="인원 보정 가중치 (${item.referenceMaxMembers}명 ÷ ${item.memberCount}명 = ×${formatMultiplier(item.weightMultiplier)})">×${formatMultiplier(item.weightMultiplier)}배</span>`
+                        : '';
+
+                    const rawScoreNoteHtml = item.weightMultiplier > 1
+                        ? `<span class="text-[10px] text-slate-400 font-medium block">원점수 ${formatScore(item.rawTotalCumulativeScore)}점 · 이번주 ${formatScore(item.currentWeekScore)}점</span>`
+                        : `<span class="text-[10px] text-cyan-700 font-semibold block">이번주 ${formatScore(item.currentWeekScore)}점</span>`;
+
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5 flex-wrap">
+                                ${medalHtml}
+                                <div class="flex items-center flex-wrap">
+                                    <span class="font-bold text-sm text-slate-800">${escapeHtml(getTeamDisplayName(item.teamId))}</span>
+                                    ${window.teamNames[item.teamId] ? `<span class="text-[10px] text-sky-700 bg-sky-100/80 border border-sky-200/80 font-bold px-1.5 py-0.2 rounded ml-1">${item.teamId}팀</span>` : ''}
+                                    ${weightBadgeHtml}
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <div class="flex items-baseline gap-0.5 justify-end">
+                                    <span class="text-xs font-bold text-sky-800 mr-1">누적</span>
+                                    <span class="text-lg font-black text-sky-700">${formatScore(item.totalCumulativeScore)}</span>
+                                    <span class="text-xs text-slate-400 font-bold">점</span>
+                                </div>
+                                ${rawScoreNoteHtml}
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-sky-200/50">
+                            ${membersHtml}
+                        </div>
+                    `;
+                    listEl.appendChild(card);
+                });
             }
 
-            const listEl = document.getElementById('leaderboardList');
+            // 3) ✨ 개인별 랭킹 리스트 렌더링
+            renderIndividualLeaderboard(individualRankings);
+        }
+
+        function renderIndividualLeaderboard(individualRankings) {
+            const listEl = document.getElementById('individualLeaderboardList');
+            const countBadge = document.getElementById('individualCountBadge');
+            const totalBtn = document.getElementById('indBasisTotalBtn');
+            const weekBtn = document.getElementById('indBasisWeekBtn');
+
+            const isWeekMode = window.individualBasis === 'week';
+
+            if (totalBtn && weekBtn) {
+                if (isWeekMode) {
+                    weekBtn.className = "px-2 py-1 rounded-md bg-white text-sky-900 shadow-2xs font-extrabold transition cursor-pointer";
+                    totalBtn.className = "px-2 py-1 rounded-md text-slate-500 hover:text-sky-800 transition cursor-pointer";
+                } else {
+                    totalBtn.className = "px-2 py-1 rounded-md bg-white text-sky-900 shadow-2xs font-extrabold transition cursor-pointer";
+                    weekBtn.className = "px-2 py-1 rounded-md text-slate-500 hover:text-sky-800 transition cursor-pointer";
+                }
+            }
+
+            if (countBadge) {
+                countBadge.innerText = `총 ${individualRankings.length}명`;
+            }
+
             if (!listEl) return;
             listEl.innerHTML = '';
 
-            rankings.forEach((item) => {
-                const rank = item.rank;
-                let medalHtml = `<span class="w-6 text-center text-sm font-bold text-slate-400">${rank}위</span>`;
-                let bgStyle = "bg-white/70 border-sky-100/90 hover:bg-white/95";
+            if (!individualRankings || individualRankings.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 text-xs">
+                        등록된 러너가 없습니다.<br>운동기록 탭에서 팀원을 추가해 주세요!
+                    </div>
+                `;
+                return;
+            }
+
+            individualRankings.forEach((runner) => {
+                const rank = runner.rank;
+                let rankBadgeHtml = `<span class="w-7 text-center text-xs font-extrabold text-slate-400 shrink-0">${rank}위</span>`;
+                let cardStyle = "bg-white/75 border-sky-100/90 hover:bg-white/95";
 
                 if (rank === 1) {
-                    medalHtml = `<span class="text-base font-bold text-sky-800">🥇 ${rank}위</span>`;
-                    bgStyle = "bg-gradient-to-r from-cyan-100/80 via-sky-50/90 to-white border-cyan-300 shadow-sm shadow-cyan-900/5";
+                    rankBadgeHtml = `<span class="w-7 text-center text-base shrink-0">🥇</span>`;
+                    cardStyle = "bg-gradient-to-r from-cyan-100/85 via-sky-50/90 to-white border-cyan-300 shadow-sm shadow-cyan-900/5";
                 } else if (rank === 2) {
-                    medalHtml = `<span class="text-base font-bold text-slate-600">🥈 ${rank}위</span>`;
-                    bgStyle = "bg-gradient-to-r from-slate-100/90 to-sky-50/60 border-slate-300/80";
+                    rankBadgeHtml = `<span class="w-7 text-center text-base shrink-0">🥈</span>`;
+                    cardStyle = "bg-gradient-to-r from-slate-100/90 to-sky-50/60 border-slate-300/80";
                 } else if (rank === 3) {
-                    medalHtml = `<span class="text-base font-bold text-cyan-700">🥉 ${rank}위</span>`;
-                    bgStyle = "bg-gradient-to-r from-sky-100/60 to-white/90 border-sky-200/80";
+                    rankBadgeHtml = `<span class="w-7 text-center text-base shrink-0">🥉</span>`;
+                    cardStyle = "bg-gradient-to-r from-sky-100/65 to-white/90 border-sky-200/80";
                 }
 
-                const card = document.createElement('div');
-                card.className = `p-3.5 rounded-xl border flex flex-col gap-2.5 cursor-pointer hover:scale-[1.01] transition backdrop-blur-sm ${bgStyle}`;
-                card.onclick = () => {
-                    selectTeam(item.teamId);
+                const mainScore = isWeekMode ? runner.weekScore : runner.totalScore;
+                const subScoreText = isWeekMode
+                    ? `누적 ${runner.totalScore}점`
+                    : `이번주 ${runner.weekScore}점`;
+
+                const runCountText = isWeekMode
+                    ? `이번주 러닝 ${runner.weekRunCount}회${runner.weekRegRun ? ' + 정기런' : ''}`
+                    : `누적 러닝 ${runner.totalRunCount}회${runner.totalRegRunCount > 0 ? ` · 정기런 ${runner.totalRegRunCount}회` : ''}`;
+
+                const bonusTagHtml = runner.bonusPoints > 0
+                    ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md">벙 ${runner.bungCount}회(+${runner.bonusPoints})</span>`
+                    : '';
+
+                const row = document.createElement('div');
+                row.className = `p-3 rounded-xl border flex items-center justify-between gap-2.5 cursor-pointer hover:scale-[1.01] transition backdrop-blur-sm ${cardStyle}`;
+                row.onclick = () => {
+                    selectTeam(runner.teamId);
                     switchTab('team');
                 };
 
-                let membersHtml = '';
-                if (item.members && item.members.length > 0) {
-                    membersHtml = item.members.map(m => {
-                        const bungCount = getMemberBungCount(m);
-                        const bonus = getMemberBonusPoints(m);
-                        const bonusBadge = bonus > 0
-                            ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-600 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md" title="벙 ${bungCount}회 참석 가산점 +${bonus}점">★ +${bonus}</span>`
-                            : '';
-                        return `
-                            <span class="inline-flex items-center gap-1 bg-white/95 text-slate-700 px-2.5 py-1 rounded-lg border border-sky-200/80 shadow-2xs font-semibold text-xs">
-                                <i class="fa-solid fa-user text-cyan-600 text-[10px]"></i> ${escapeHtml(m.name)} ${bonusBadge}
-                            </span>
-                        `;
-                    }).join(' ');
-                } else {
-                    membersHtml = `<span class="text-xs text-slate-400 italic">등록된 팀원 없음</span>`;
-                }
-
-                const weightBadgeHtml = item.weightMultiplier > 1
-                    ? `<span class="inline-flex items-center text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-1.5 py-0.2 rounded-md ml-1" title="인원 보정 가중치 (${item.referenceMaxMembers}명 ÷ ${item.memberCount}명 = ×${formatMultiplier(item.weightMultiplier)})">×${formatMultiplier(item.weightMultiplier)}배</span>`
-                    : '';
-
-                const rawScoreNoteHtml = item.weightMultiplier > 1
-                    ? `<span class="text-[10px] text-slate-400 font-medium block">원점수 ${formatScore(item.rawTotalCumulativeScore)}점 · 이번주 ${formatScore(item.currentWeekScore)}점</span>`
-                    : `<span class="text-[10px] text-cyan-700 font-semibold block">이번주 ${formatScore(item.currentWeekScore)}점</span>`;
-
-                card.innerHTML = `
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2.5 flex-wrap">
-                            ${medalHtml}
-                            <div class="flex items-center flex-wrap">
-                                <span class="font-bold text-sm text-slate-800">${escapeHtml(getTeamDisplayName(item.teamId))}</span>
-                                ${window.teamNames[item.teamId] ? `<span class="text-[10px] text-sky-700 bg-sky-100/80 border border-sky-200/80 font-bold px-1.5 py-0.2 rounded ml-1">${item.teamId}팀</span>` : ''}
-                                ${weightBadgeHtml}
+                row.innerHTML = `
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        ${rankBadgeHtml}
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="font-extrabold text-sm text-slate-800 truncate">${escapeHtml(runner.name)}</span>
+                                <span class="text-[10px] font-bold text-sky-800 bg-sky-100/90 border border-sky-200/80 px-1.5 py-0.2 rounded-md shrink-0">
+                                    ${escapeHtml(runner.teamName)}
+                                </span>
+                                ${bonusTagHtml}
                             </div>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <div class="flex items-baseline gap-0.5 justify-end">
-                                <span class="text-xs font-bold text-sky-800 mr-1">누적</span>
-                                <span class="text-lg font-black text-sky-700">${formatScore(item.totalCumulativeScore)}</span>
-                                <span class="text-xs text-slate-400 font-bold">점</span>
-                            </div>
-                            ${rawScoreNoteHtml}
+                            <p class="text-[10px] text-slate-500 mt-0.5 truncate">
+                                ${runCountText}
+                            </p>
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-sky-200/50">
-                        ${membersHtml}
+                    <div class="text-right shrink-0">
+                        <div class="flex items-baseline gap-0.5 justify-end">
+                            <span class="text-lg font-black text-sky-700">${mainScore}</span>
+                            <span class="text-[11px] text-slate-400 font-bold">점</span>
+                        </div>
+                        <span class="text-[10px] text-cyan-700 font-semibold block">${subScoreText}</span>
                     </div>
                 `;
-                listEl.appendChild(card);
+
+                listEl.appendChild(row);
             });
         }
 
