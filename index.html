@@ -141,7 +141,7 @@
                             </span>
                         </div>
                         
-                        <!-- ✨ 겨울 D-Day 배너 ✨ -->
+                        <!-- 겨울 D-Day 배너 -->
                         <div>
                             <span id="targetDayBadge" class="bg-gradient-to-r from-white via-sky-100 to-cyan-100 text-sky-950 text-xs sm:text-sm font-black px-3 py-1 rounded-full inline-flex items-center gap-1 border border-white shadow-sm">
                                 ❄️ 챌린지 종료까지 단 ?일! 파이팅 🏃
@@ -156,7 +156,7 @@
                     <i class="fa-solid fa-icicles absolute top-0 right-12 text-3xl text-white/25 pointer-events-none"></i>
                 </div>
 
-                <!-- ✨ 팀 랭킹 / 개인 랭킹 전환 스위치 ✨ -->
+                <!-- 팀 랭킹 / 개인 랭킹 전환 스위치 -->
                 <div class="flex bg-sky-200/60 border border-sky-200/90 p-1 rounded-2xl text-xs font-bold backdrop-blur-sm shadow-2xs">
                     <button type="button" id="subTabTeamRankBtn" onclick="switchLeaderboardMode('team')" class="flex-1 py-2 rounded-xl text-center transition bg-gradient-to-r from-sky-700 to-cyan-700 text-white shadow-sm font-extrabold cursor-pointer flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-people-group"></i> 팀별 랭킹
@@ -179,7 +179,7 @@
                     <div id="leaderboardList" class="space-y-2.5"></div>
                 </div>
 
-                <!-- ✨ 실시간 개인 랭킹 리스트 카드 ✨ -->
+                <!-- 실시간 개인 랭킹 리스트 카드 -->
                 <div id="individualLeaderboardCard" class="frost-card rounded-2xl p-4 space-y-3 hidden">
                     <div class="flex justify-between items-center pb-2 border-b border-sky-200/70 gap-2">
                         <div class="flex items-center gap-2">
@@ -792,13 +792,11 @@
             render();
         }
 
-        // ✨ 랭킹보드 서브 탭 전환 (팀별 랭킹 vs 개인 랭킹)
         function switchLeaderboardMode(mode) {
             window.leaderboardMode = mode;
             render();
         }
 
-        // ✨ 개인 랭킹 기준 전환 (전체 누적 vs 이번 주)
         function switchIndividualBasis(basis) {
             window.individualBasis = basis;
             render();
@@ -916,7 +914,6 @@
                 }
             }
 
-            // 11월 23일 ~ 12월 18일 기간 기준 D-Day 계산
             const today = new Date();
             const cleanToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
             const cleanStart = new Date(CHALLENGE_START_DATE.getFullYear(), CHALLENGE_START_DATE.getMonth(), CHALLENGE_START_DATE.getDate());
@@ -1084,7 +1081,7 @@
             return rankings;
         }
 
-        // ✨ 전체 개인 랭킹 계산 함수
+        // 전체 개인 랭킹 계산 함수 (운동횟수 무관, 오직 점수로만 순위 및 공동순위 산정)
         function getAllIndividualRankings() {
             sanitizeTeamData();
             const dates = getWeekDates(window.currentWeekOffset);
@@ -1096,7 +1093,6 @@
                 members.forEach(m => {
                     if (!m || typeof m !== 'object') return;
 
-                    // 1) 이번 주 점수 계산
                     let weekRunCount = 0;
                     dates.forEach(dObj => {
                         if (dObj.inChallenge && getMemberRecordForDate(m, dObj) === 'O') {
@@ -1104,9 +1100,9 @@
                         }
                     });
                     const weekRegRun = isMemberRegularRunChecked(m, currentWeekKey) ? 1 : 0;
-                    const weekBaseScore = Math.min(5, weekRunCount + weekRegRun);
+                    const weekExerciseCount = weekRunCount + weekRegRun;
+                    const weekBaseScore = Math.min(5, weekExerciseCount);
 
-                    // 2) 전체 누적 점수 & 총 러닝 인증 횟수 계산
                     const weeklyMap = {};
                     let totalRunCount = 0;
                     let totalRegRunCount = 0;
@@ -1133,6 +1129,8 @@
                         });
                     }
 
+                    const totalExerciseCount = totalRunCount + totalRegRunCount;
+
                     let cumulativeBaseScore = 0;
                     Object.values(weeklyMap).forEach(cnt => {
                         cumulativeBaseScore += Math.min(5, cnt);
@@ -1155,8 +1153,10 @@
                         weekBaseScore,
                         weekRunCount,
                         weekRegRun,
+                        weekExerciseCount,
                         totalRunCount,
                         totalRegRunCount,
+                        totalExerciseCount,
                         bungCount,
                         bonusPoints
                     });
@@ -1165,32 +1165,22 @@
 
             const isWeekMode = window.individualBasis === 'week';
 
+            // 횟수 상관없이 오직 점수로만 내림차순 정렬
             list.sort((a, b) => {
-                const primaryA = isWeekMode ? a.weekScore : a.totalScore;
-                const primaryB = isWeekMode ? b.weekScore : b.totalScore;
-                if (primaryB !== primaryA) return primaryB - primaryA;
-
-                const secondaryA = isWeekMode ? a.totalScore : a.weekScore;
-                const secondaryB = isWeekMode ? b.totalScore : b.weekScore;
-                if (secondaryB !== secondaryA) return secondaryB - secondaryA;
-
-                const runA = isWeekMode ? a.weekRunCount : a.totalRunCount;
-                const runB = isWeekMode ? b.weekRunCount : b.totalRunCount;
-                if (runB !== runA) return runB - runA;
-
-                return b.bungCount - a.bungCount;
+                const scoreA = isWeekMode ? a.weekScore : a.totalScore;
+                const scoreB = isWeekMode ? b.weekScore : b.totalScore;
+                return scoreB - scoreA;
             });
 
+            // 점수가 같으면 공동순위 부여
             for (let i = 0; i < list.length; i++) {
                 if (i > 0) {
                     const prev = list[i - 1];
                     const curr = list[i];
                     const scorePrev = isWeekMode ? prev.weekScore : prev.totalScore;
                     const scoreCurr = isWeekMode ? curr.weekScore : curr.totalScore;
-                    const runPrev = isWeekMode ? prev.weekRunCount : prev.totalRunCount;
-                    const runCurr = isWeekMode ? curr.weekRunCount : curr.totalRunCount;
 
-                    if (scoreCurr === scorePrev && runCurr === runPrev && curr.bungCount === prev.bungCount) {
+                    if (scoreCurr === scorePrev) {
                         curr.rank = prev.rank;
                     } else {
                         curr.rank = i + 1;
@@ -1199,6 +1189,14 @@
                     list[i].rank = 1;
                 }
             }
+
+            const rankCounts = {};
+            list.forEach(item => {
+                rankCounts[item.rank] = (rankCounts[item.rank] || 0) + 1;
+            });
+            list.forEach(item => {
+                item.isTied = (rankCounts[item.rank] || 0) > 1;
+            });
 
             return list;
         }
@@ -1216,7 +1214,6 @@
 
             const isIndividual = window.leaderboardMode === 'individual';
 
-            // 서브 탭 버튼 스타일 & 카드 토글
             if (subTeamBtn && subIndBtn && teamCard && indCard) {
                 if (isIndividual) {
                     subIndBtn.className = "flex-1 py-2 rounded-xl text-center transition bg-gradient-to-r from-sky-700 to-cyan-700 text-white shadow-sm font-extrabold cursor-pointer flex items-center justify-center gap-1.5";
@@ -1231,10 +1228,8 @@
                 }
             }
 
-            // 1) 상단 1위 배너 업데이트
             if (isIndividual) {
                 const isWeekMode = window.individualBasis === 'week';
-                // 개인 랭킹에서는 상단 1위 상태 뱃지 숨김 처리
                 if (badgeRow) badgeRow.classList.add('hidden');
 
                 if (!individualRankings || individualRankings.length === 0) {
@@ -1242,14 +1237,15 @@
                     if (scoreEl) scoreEl.innerText = "운동기록 탭에서 팀원을 추가해 주세요";
                 } else {
                     const topRunners = individualRankings.filter(r => r.rank === 1);
+                    const topPrefix = topRunners.length > 1 ? "[공동 1위] " : "";
                     const topNamesStr = topRunners.map(r => `${r.name}(${r.teamName})`).join(', ');
-                    if (nameEl) nameEl.innerText = topNamesStr;
+                    if (nameEl) nameEl.innerText = `${topPrefix}${topNamesStr}`;
 
                     const topFirst = topRunners[0];
                     if (scoreEl) {
                         scoreEl.innerText = isWeekMode
-                            ? `이번 주 ${topFirst.weekScore}점 (총 누적: ${topFirst.totalScore}점 · 러닝 ${topFirst.totalRunCount}회)`
-                            : `총 누적 ${topFirst.totalScore}점 (이번 주: ${topFirst.weekScore}점 · 러닝 ${topFirst.totalRunCount}회)`;
+                            ? `이번 주 ${topFirst.weekScore}점 (총 누적: ${topFirst.totalScore}점)`
+                            : `총 누적 ${topFirst.totalScore}점 (이번 주: ${topFirst.weekScore}점)`;
                     }
                 }
             } else {
@@ -1281,7 +1277,6 @@
                 }
             }
 
-            // 2) 팀별 랭킹 리스트 렌더링
             const listEl = document.getElementById('leaderboardList');
             if (listEl && rankings) {
                 listEl.innerHTML = '';
@@ -1362,7 +1357,6 @@
                 });
             }
 
-            // 3) ✨ 개인별 랭킹 리스트 렌더링
             renderIndividualLeaderboard(individualRankings);
         }
 
@@ -1402,17 +1396,19 @@
 
             individualRankings.forEach((runner) => {
                 const rank = runner.rank;
-                let rankBadgeHtml = `<span class="w-7 text-center text-xs font-extrabold text-slate-400 shrink-0">${rank}위</span>`;
+                const rankLabel = runner.isTied ? `공동 ${rank}위` : `${rank}위`;
+                // 고정 너비(w-[68px] shrink-0)를 주어 '1위'와 '공동 N위'가 달라도 이름 시작 라인을 일직선으로 정렬
+                let rankBadgeHtml = `<span class="w-[68px] text-left text-[11px] font-extrabold text-slate-500 shrink-0">${rankLabel}</span>`;
                 let cardStyle = "bg-white/75 border-sky-100/90 hover:bg-white/95";
 
                 if (rank === 1) {
-                    rankBadgeHtml = `<span class="w-7 text-center text-base shrink-0">🥇</span>`;
+                    rankBadgeHtml = `<span class="w-[68px] text-left text-xs font-black text-sky-900 shrink-0 flex items-center gap-1"><span class="text-sm leading-none">🥇</span><span class="truncate">${rankLabel}</span></span>`;
                     cardStyle = "bg-gradient-to-r from-cyan-100/85 via-sky-50/90 to-white border-cyan-300 shadow-sm shadow-cyan-900/5";
                 } else if (rank === 2) {
-                    rankBadgeHtml = `<span class="w-7 text-center text-base shrink-0">🥈</span>`;
+                    rankBadgeHtml = `<span class="w-[68px] text-left text-xs font-extrabold text-slate-700 shrink-0 flex items-center gap-1"><span class="text-sm leading-none">🥈</span><span class="truncate">${rankLabel}</span></span>`;
                     cardStyle = "bg-gradient-to-r from-slate-100/90 to-sky-50/60 border-slate-300/80";
                 } else if (rank === 3) {
-                    rankBadgeHtml = `<span class="w-7 text-center text-base shrink-0">🥉</span>`;
+                    rankBadgeHtml = `<span class="w-[68px] text-left text-xs font-extrabold text-cyan-800 shrink-0 flex items-center gap-1"><span class="text-sm leading-none">🥉</span><span class="truncate">${rankLabel}</span></span>`;
                     cardStyle = "bg-gradient-to-r from-sky-100/65 to-white/90 border-sky-200/80";
                 }
 
@@ -1421,9 +1417,10 @@
                     ? `누적 ${runner.totalScore}점`
                     : `이번주 ${runner.weekScore}점`;
 
-                const runCountText = isWeekMode
-                    ? `이번주 러닝 ${runner.weekRunCount}회${runner.weekRegRun ? ' + 정기행사' : ''}`
-                    : `누적 러닝 ${runner.totalRunCount}회${runner.totalRegRunCount > 0 ? ` · 정기행사 ${runner.totalRegRunCount}회` : ''}`;
+                const exerciseCount = isWeekMode ? runner.weekExerciseCount : runner.totalExerciseCount;
+                const exerciseCountText = isWeekMode
+                    ? `이번주 운동 ${exerciseCount}회${runner.weekRegRun ? ' (정기행사 포함)' : ''}`
+                    : `누적 운동 ${exerciseCount}회${runner.totalRegRunCount > 0 ? ` (정기행사 ${runner.totalRegRunCount}회 포함)` : ''}`;
 
                 const bonusTagHtml = runner.bonusPoints > 0
                     ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded-md">벙 ${runner.bungCount}회(+${runner.bonusPoints})</span>`
@@ -1437,7 +1434,7 @@
                 };
 
                 row.innerHTML = `
-                    <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="flex items-center gap-2 min-w-0">
                         ${rankBadgeHtml}
                         <div class="min-w-0">
                             <div class="flex items-center gap-1.5 flex-wrap">
@@ -1448,7 +1445,7 @@
                                 ${bonusTagHtml}
                             </div>
                             <p class="text-[10px] text-slate-500 mt-0.5 truncate">
-                                ${runCountText}
+                                ${exerciseCountText}
                             </p>
                         </div>
                     </div>
